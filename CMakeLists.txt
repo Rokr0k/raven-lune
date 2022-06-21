@@ -8,12 +8,12 @@ find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 
-add_subdirectory("parser/")
+add_subdirectory(bmsparser)
 
-set(CXX_SOURCES "src/main.cpp" "src/App.cpp" "src/TitleScene.cpp" "src/ListScene.cpp" "src/font.cpp")
-set(CXX_HEADERS "src/App.hpp" "src/Scene.hpp" "src/TitleScene.hpp" "src/ListScene.hpp" "src/font.hpp")
+set(CXX_SOURCES "src/main.cpp" "src/file.cpp" "src/font.cpp" "src/App.cpp" "src/TitleScene.cpp" "src/ListScene.cpp")
+set(CXX_HEADERS "src/file.hpp" "src/font.hpp" "src/App.hpp" "src/Scene.hpp" "src/TitleScene.hpp" "src/ListScene.hpp")
 
 add_executable(raven-lune ${CXX_SOURCES} ${CXX_HEADERS})
 
 target_compile_features(raven-lune PRIVATE cxx_std_17)
-target_link_libraries(raven-lune SDL2::Main SDL2::Image SDL2::TTF bmsparser)
+target_link_libraries(raven-lune bmsparser SDL2::Main SDL2::Image SDL2::TTF)

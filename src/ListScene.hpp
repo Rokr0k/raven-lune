@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Scene.hpp"
+#include <future>
 
 namespace rl
 {

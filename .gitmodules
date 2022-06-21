@@ -1,6 +1,6 @@
 [submodule "cmake/sdl2"]
 	path = cmake/sdl2
 	url = https://gitlab.com/aminosbh/sdl2-cmake-modules.git
-[submodule "parser"]
-	path = parser
+[submodule "bmsparser"]
+	path = bmsparser
 	url = https://github.com/Rokr0k/bmsparser.git

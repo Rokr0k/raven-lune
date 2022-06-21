@@ -1,12 +1,12 @@
 #include "ListScene.hpp"
-#include <bmsparser/bmsparser.hpp>
-#include <filesystem>
+#include "file.hpp"
 
 using namespace rl;
 
 void ListScene::initialise(SDL_Renderer *renderer)
 {
-    //
+    file::loading.wait();
+    printf("%lu\n", file::charts.size());
 }
 
 void ListScene::draw(SDL_Renderer *renderer)
