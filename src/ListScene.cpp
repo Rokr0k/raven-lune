@@ -1,4 +1,6 @@
 #include "ListScene.hpp"
+#include "PlayScene.hpp"
+#include "image.hpp"
 #include "font.hpp"
 #include "file.hpp"
 #include <SDL_image.h>
@@ -7,9 +9,12 @@ using namespace rl;
 
 void ListScene::initialise(SDL_Renderer *renderer)
 {
+    int w, h;
     loaded = file::loading.wait_for(std::chrono::nanoseconds(1)) == std::future_status::ready;
+    selected = false;
     loading = font::renderText(renderer, "Loading...");
-    loadingRect = {220, 220, 200, 40};
+    SDL_QueryTexture(loading, NULL, NULL, &w, &h);
+    loadingRect = {0, 0, (float)w / h * 40, 40};
     if (loaded)
     {
         onload(renderer);
@@ -27,7 +32,7 @@ void ListScene::draw(SDL_Renderer *renderer)
             onload(renderer);
         }
     }
-    else
+    else if (!selected)
     {
         if (index < infos.size())
         {
@@ -39,6 +44,14 @@ void ListScene::draw(SDL_Renderer *renderer)
             SDL_RenderCopyF(renderer, infos[index].banner, NULL, &infos[index].bannerRect);
         }
     }
+    else
+    {
+        SDL_RenderCopyF(renderer, infos[index].stagefile, NULL, &infos[index].stagefileRect);
+        if (timer < SDL_GetTicks())
+        {
+            app->changeScene(new PlayScene(app, chart));
+        }
+    }
 }
 
 void ListScene::onkeydown(SDL_KeyboardEvent key)
@@ -46,10 +59,25 @@ void ListScene::onkeydown(SDL_KeyboardEvent key)
     switch (key.keysym.sym)
     {
     case SDLK_UP:
-        index = (index + infos.size() - 1) % infos.size();
+        if (loaded && !selected)
+        {
+            index = (index + infos.size() - 1) % infos.size();
+        }
         break;
     case SDLK_DOWN:
-        index = (index + 1) % infos.size();
+        if (loaded && !selected)
+        {
+            index = (index + 1) % infos.size();
+        }
+        break;
+    case SDLK_RETURN:
+        if (loaded && !selected && index < infos.size())
+        {
+            selected = true;
+            timer = SDL_GetTicks() + 2000;
+            chart = file::charts[index];
+            file::charts.erase(file::charts.begin() + index);
+        }
         break;
     }
 }
@@ -65,6 +93,7 @@ void ListScene::release()
         SDL_DestroyTexture(info.artist);
         SDL_DestroyTexture(info.level);
         SDL_DestroyTexture(info.banner);
+        SDL_DestroyTexture(info.stagefile);
     }
 }
 
@@ -90,9 +119,9 @@ void ListScene::onload(SDL_Renderer *renderer)
         info.level = font::renderText(renderer, std::to_string(chart->playLevel));
         SDL_QueryTexture(info.level, NULL, NULL, &w, &h);
         info.levelRect = {20, 200, std::min((float)w / h * 60, 600.0f), 60};
-        info.banner = IMG_LoadTexture(renderer, chart->banner.c_str());
+        info.banner = image::loadImage(renderer, chart->banner.c_str());
         info.bannerRect = {0, 480 - 1024.0f / 6, 640, 1024.0f / 6};
-        info.stagefile = IMG_LoadTexture(renderer, chart->stagefile.c_str());
+        info.stagefile = image::loadImage(renderer, chart->stagefile.c_str());
         info.stagefileRect = {0, 0, 640, 480};
         switch (chart->difficulty)
         {

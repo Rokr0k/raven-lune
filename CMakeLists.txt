@@ -11,8 +11,8 @@ find_package(SDL2_mixer REQUIRED)
 
 add_subdirectory(bmsparser)
 
-set(CXX_SOURCES "src/main.cpp" "src/file.cpp" "src/font.cpp" "src/App.cpp" "src/TitleScene.cpp" "src/ListScene.cpp")
-set(CXX_HEADERS "src/file.hpp" "src/font.hpp" "src/App.hpp" "src/Scene.hpp" "src/TitleScene.hpp" "src/ListScene.hpp")
+set(CXX_SOURCES "src/main.cpp" "src/file.cpp" "src/font.cpp" "src/audio.cpp" "src/image.cpp" "src/App.cpp" "src/TitleScene.cpp" "src/ListScene.cpp" "src/PlayScene.cpp")
+set(CXX_HEADERS "src/file.hpp" "src/font.hpp" "src/audio.hpp" "src/image.hpp" "src/App.hpp" "src/Scene.hpp" "src/TitleScene.hpp" "src/ListScene.hpp" "src/PlayScene.hpp")
 
 add_executable(raven-lune ${CXX_SOURCES} ${CXX_HEADERS})
 

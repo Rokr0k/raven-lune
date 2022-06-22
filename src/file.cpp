@@ -12,7 +12,7 @@ std::future<void> file::loading;
 void file::initialise()
 {
     loading = std::async(std::launch::async, []()
-                      {
+                         {
         std::ifstream list("res/list.txt");
         std::string dir;
         std::regex fileRegex = std::regex(R"(^\.(bms|bme|bml)$)", std::regex_constants::icase);
