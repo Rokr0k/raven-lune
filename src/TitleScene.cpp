@@ -1,19 +1,19 @@
 #include "TitleScene.hpp"
 #include "ListScene.hpp"
 #include "font.hpp"
+#include "file.hpp"
 
 using namespace rl;
 
 void TitleScene::initialise(SDL_Renderer *renderer)
 {
-    SDL_Surface *tempSurface = font::renderText("Raven Lune");
-    title = SDL_CreateTextureFromSurface(renderer, tempSurface);
-    SDL_FreeSurface(tempSurface);
-    titleRect = SDL_FRect{120, 160, 400, 80};
-    tempSurface = font::renderText("Press Space to Start");
-    instruction = SDL_CreateTextureFromSurface(renderer, tempSurface);
-    SDL_FreeSurface(tempSurface);
-    instructionRect = SDL_FRect{120, 340, 400, 40};
+    int w, h;
+    title = font::renderText(renderer, "Raven Lune");
+    SDL_QueryTexture(title, NULL, NULL, &w, &h);
+    titleRect = {320 - (float)w / h * 40, 160, (float)w / h * 80, 80};
+    instruction = font::renderText(renderer, "Press Space to Start");
+    SDL_QueryTexture(instruction, NULL, NULL, &w, &h);
+    instructionRect = {320 - (float)w / h * 20, 340, (float)w / h * 40, 40};
 }
 
 void TitleScene::draw(SDL_Renderer *renderer)
@@ -24,7 +24,12 @@ void TitleScene::draw(SDL_Renderer *renderer)
 
 void TitleScene::onkeydown(SDL_KeyboardEvent key)
 {
-    app->changeScene(new ListScene(app));
+    switch (key.keysym.sym)
+    {
+    case SDLK_SPACE:
+        app->changeScene(new ListScene(app));
+        break;
+    }
 }
 
 void TitleScene::release()

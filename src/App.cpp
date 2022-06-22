@@ -1,4 +1,6 @@
 #include "App.hpp"
+#include <SDL_image.h>
+#include <SDL_mixer.h>
 #include "font.hpp"
 #include "file.hpp"
 
@@ -7,7 +9,9 @@ using namespace rl;
 App::App(Scene *initialScene)
 {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-    font::initialise("res/consolas.ttf");
+    IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG | IMG_INIT_TIF);
+    Mix_Init(MIX_INIT_OGG | MIX_INIT_OPUS | MIX_INIT_FLAC);
+    font::initialise("res/DotGothic16.ttf");
     file::initialise();
     window = SDL_CreateWindow("Raven Lune", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, 0);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -24,8 +28,9 @@ App::~App()
     {
         delete scene;
     }
+    IMG_Quit();
+    Mix_Quit();
     font::release();
-    file::loading.wait();
     file::release();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -44,16 +49,16 @@ int App::loop()
             case SDL_QUIT:
                 return 0;
             case SDL_KEYDOWN:
-                if (scene)
-                {
-                    scene->onkeydown(event.key);
-                }
+                    if (scene)
+                    {
+                        scene->onkeydown(event.key);
+                    }
                 break;
             case SDL_KEYUP:
-                if (scene)
-                {
-                    scene->onkeyup(event.key);
-                }
+                    if (scene)
+                    {
+                        scene->onkeyup(event.key);
+                    }
                 break;
             }
         }

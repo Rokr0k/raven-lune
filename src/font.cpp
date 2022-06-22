@@ -15,7 +15,16 @@ SDL_Surface *font::renderText(const std::string &text)
 {
     SDL_Color fg{0xff, 0xff, 0xff, 0xff};
     SDL_Color bg{0x00, 0x00, 0x00, 0x00};
-    return TTF_RenderText(font_, text.c_str(), fg, bg);
+    SDL_Surface *surface = TTF_RenderUTF8(font_, text.c_str(), fg, bg);
+    return surface;
+}
+
+SDL_Texture *font::renderText(SDL_Renderer *renderer, const std::string &text)
+{
+    SDL_Surface *temp = renderText(text);
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, temp);
+    SDL_FreeSurface(temp);
+    return texture;
 }
 
 void font::release()

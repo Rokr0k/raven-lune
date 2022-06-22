@@ -9,6 +9,7 @@ namespace rl
     {
         void initialise(const std::string &file);
         SDL_Surface *renderText(const std::string &text);
+        SDL_Texture *renderText(SDL_Renderer *renderer, const std::string &text);
         void release();
     }
 }
