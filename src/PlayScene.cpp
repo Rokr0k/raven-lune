@@ -1,6 +1,7 @@
 #include "PlayScene.hpp"
 #include "ListScene.hpp"
 #include "file.hpp"
+#include "font.hpp"
 #include "audio.hpp"
 #include "image.hpp"
 #include <algorithm>
@@ -36,6 +37,22 @@ void PlayScene::initialise(SDL_Renderer *renderer)
     timer = std::chrono::high_resolution_clock::now();
 
     speed = 2;
+
+    sectorIdx = 0;
+
+    bpmDisplay = font::renderText(renderer, std::to_string((int)chart->sectors[sectorIdx].bpm).substr(0, 3));
+    if (playMode == PlayMode::SINGLE)
+    {
+        int w, h;
+        SDL_QueryTexture(bpmDisplay, NULL, NULL, &w, &h);
+        bpmDisplayRect = {400 - (float)w / h * 10, 450, (float)w / h * 20, 20};
+    }
+    if (playMode == PlayMode::DUAL)
+    {
+        int w, h;
+        SDL_QueryTexture(bpmDisplay, NULL, NULL, &w, &h);
+        bpmDisplayRect = {480 - (float)w / h * 10, 450, (float)w / h * 20, 20};
+    }
 }
 
 void PlayScene::draw(SDL_Renderer *renderer)
@@ -316,6 +333,40 @@ void PlayScene::draw(SDL_Renderer *renderer)
             break;
         }
     }
+    size_t prevSectorIdx = sectorIdx;
+    while (sectorIdx + 1 < chart->sectors.size() && (chart->sectors[sectorIdx + 1].time < currentTime || chart->sectors[sectorIdx + 1].inclusive && chart->sectors[sectorIdx + 1].time == currentTime))
+    {
+        sectorIdx++;
+    }
+    if (sectorIdx != prevSectorIdx)
+    {
+        SDL_DestroyTexture(bpmDisplay);
+        if (chart->sectors[sectorIdx].bpm > 0)
+        {
+            bpmDisplay = font::renderText(renderer, std::to_string((int)chart->sectors[sectorIdx].bpm).substr(0, 3));
+        }
+        else if (sectorIdx > 0)
+        {
+            bpmDisplay = font::renderText(renderer, std::to_string((int)chart->sectors[sectorIdx - 1].bpm).substr(0, 3));
+        }
+        else
+        {
+            bpmDisplay = font::renderText(renderer, "0");
+        }
+        if (playMode == PlayMode::SINGLE)
+        {
+            int w, h;
+            SDL_QueryTexture(bpmDisplay, NULL, NULL, &w, &h);
+            bpmDisplayRect = {400 - (float)w / h * 10, 450, (float)w / h * 20, 20};
+        }
+        if (playMode == PlayMode::DUAL)
+        {
+            int w, h;
+            SDL_QueryTexture(bpmDisplay, NULL, NULL, &w, &h);
+            bpmDisplayRect = {480 - (float)w / h * 10, 450, (float)w / h * 20, 20};
+        }
+    }
+    SDL_RenderCopyF(renderer, bpmDisplay, NULL, &bpmDisplayRect);
     if (empty && !audio::isPlayingAudio())
     {
         app->changeScene(new ListScene(app));
@@ -324,6 +375,7 @@ void PlayScene::draw(SDL_Renderer *renderer)
 
 void PlayScene::release()
 {
+    SDL_DestroyTexture(bpmDisplay);
     delete[] executed;
     delete chart;
     audio::releaseAudio();

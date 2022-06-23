@@ -14,10 +14,14 @@ namespace rl
         bool *executed;
         enum class PlayMode
         {
-            SINGLE, DUAL
+            SINGLE,
+            DUAL
         } playMode;
         std::chrono::system_clock::time_point timer;
         float speed;
+        SDL_Texture *bpmDisplay;
+        SDL_FRect bpmDisplayRect;
+        size_t sectorIdx;
 
     public:
         PlayScene(App *app, bms::Chart *chart) : Scene(app), chart(chart) {}
