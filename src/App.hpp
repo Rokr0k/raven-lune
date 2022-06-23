@@ -6,15 +6,16 @@
 namespace rl
 {
     class Scene;
-    
+
     class App
     {
     private:
-        SDL_Window *window;
-        SDL_Renderer *renderer;
         Scene *scene;
 
     public:
+        SDL_Window *window;
+        SDL_Renderer *renderer;
+
         App(Scene *initialScene);
         ~App();
         int loop();

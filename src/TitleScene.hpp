@@ -14,8 +14,8 @@ namespace rl
 
     public:
         TitleScene(App *app) : Scene(app) {}
-        void initialise(SDL_Renderer *renderer);
-        void draw(SDL_Renderer *renderer);
+        void initialise();
+        void draw();
         void release();
         void onkeydown(SDL_KeyboardEvent key);
     };

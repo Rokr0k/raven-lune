@@ -13,9 +13,7 @@ void font::initialise(const std::string &file)
 
 SDL_Surface *font::renderText(const std::string &text)
 {
-    SDL_Color fg{0xff, 0xff, 0xff, 0xff};
-    SDL_Color bg{0x00, 0x00, 0x00, 0x00};
-    SDL_Surface *surface = TTF_RenderUTF8(font_, text.c_str(), fg, bg);
+    SDL_Surface *surface = TTF_RenderUTF8_Blended(font_, text.c_str(), {0xff, 0xff, 0xff, 0xff});
     return surface;
 }
 

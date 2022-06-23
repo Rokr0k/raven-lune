@@ -5,10 +5,18 @@
 #include "audio.hpp"
 #include "image.hpp"
 #include <algorithm>
+#include <limits>
 
 using namespace rl;
 
-void PlayScene::initialise(SDL_Renderer *renderer)
+constexpr float judgeLine[][5] = {
+    {0.008f, 0.024f, 0.040f, 0.200f, 1.000f},
+    {0.015f, 0.030f, 0.060f, 0.200f, 1.000f},
+    {0.018f, 0.040f, 0.100f, 0.200f, 1.000f},
+    {0.021f, 0.060f, 0.120f, 0.200f, 1.000f},
+};
+
+void PlayScene::initialise()
 {
     file::release();
     for (int i = 0; i < 1296; i++)
@@ -17,11 +25,6 @@ void PlayScene::initialise(SDL_Renderer *renderer)
         {
             audio::loadAudio(i, chart->wavs[i]);
         }
-    }
-    executed = new bool[chart->objs.size()];
-    for (size_t i = 0; i < chart->objs.size(); i++)
-    {
-        executed[i] = false;
     }
 
     if (std::find_if(chart->objs.begin(), chart->objs.end(), [](const bms::Obj &a)
@@ -34,13 +37,21 @@ void PlayScene::initialise(SDL_Renderer *renderer)
         playMode = PlayMode::DUAL;
     }
 
-    timer = std::chrono::high_resolution_clock::now();
+    noteCnt = std::count_if(chart->objs.begin(), chart->objs.end(), [](const bms::Obj &a)
+                            { return a.type == bms::Obj::Type::NOTE && !a.note.end; });
 
-    speed = 2;
+    timer = SDL_GetTicks();
+
+    speed = 1;
+
+    combo = 0;
+    gauge = 20.0f;
+
+    judgeDisplay = NULL;
 
     sectorIdx = 0;
 
-    bpmDisplay = font::renderText(renderer, std::to_string((int)chart->sectors[sectorIdx].bpm).substr(0, 3));
+    bpmDisplay = font::renderText(app->renderer, std::to_string((int)chart->sectors[sectorIdx].bpm).substr(0, 3));
     if (playMode == PlayMode::SINGLE)
     {
         int w, h;
@@ -55,185 +66,185 @@ void PlayScene::initialise(SDL_Renderer *renderer)
     }
 }
 
-void PlayScene::draw(SDL_Renderer *renderer)
+void PlayScene::draw()
 {
-    float currentTime = (std::chrono::high_resolution_clock::now() - timer).count() * 0.000000001f;
+    float currentTime = (SDL_GetTicks() - timer) * 0.001f;
     float currentFraction = chart->timeToFraction(currentTime);
 
-    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+    SDL_SetRenderDrawColor(app->renderer, 0xff, 0xff, 0xff, 0xff);
 
-    SDL_RenderDrawLineF(renderer, 0, 0, 0, 480);
-    SDL_RenderDrawLineF(renderer, 30, 0, 30, 480);
-    SDL_RenderDrawLineF(renderer, 50, 0, 50, 480);
-    SDL_RenderDrawLineF(renderer, 65, 0, 65, 480);
-    SDL_RenderDrawLineF(renderer, 85, 0, 85, 480);
-    SDL_RenderDrawLineF(renderer, 100, 0, 100, 480);
-    SDL_RenderDrawLineF(renderer, 120, 0, 120, 480);
-    SDL_RenderDrawLineF(renderer, 135, 0, 135, 480);
-    SDL_RenderDrawLineF(renderer, 155, 0, 155, 480);
+    SDL_RenderDrawLineF(app->renderer, 0, 0, 0, 480);
+    SDL_RenderDrawLineF(app->renderer, 30, 0, 30, 480);
+    SDL_RenderDrawLineF(app->renderer, 50, 0, 50, 480);
+    SDL_RenderDrawLineF(app->renderer, 65, 0, 65, 480);
+    SDL_RenderDrawLineF(app->renderer, 85, 0, 85, 480);
+    SDL_RenderDrawLineF(app->renderer, 100, 0, 100, 480);
+    SDL_RenderDrawLineF(app->renderer, 120, 0, 120, 480);
+    SDL_RenderDrawLineF(app->renderer, 135, 0, 135, 480);
+    SDL_RenderDrawLineF(app->renderer, 155, 0, 155, 480);
     if (playMode == PlayMode::DUAL)
     {
         SDL_FRect partition = {155, 0, 5, 480};
-        SDL_RenderFillRectF(renderer, &partition);
-        SDL_RenderDrawLineF(renderer, 160, 0, 160, 480);
-        SDL_RenderDrawLineF(renderer, 180, 0, 180, 480);
-        SDL_RenderDrawLineF(renderer, 195, 0, 195, 480);
-        SDL_RenderDrawLineF(renderer, 215, 0, 215, 480);
-        SDL_RenderDrawLineF(renderer, 230, 0, 230, 480);
-        SDL_RenderDrawLineF(renderer, 250, 0, 250, 480);
-        SDL_RenderDrawLineF(renderer, 265, 0, 265, 480);
-        SDL_RenderDrawLineF(renderer, 285, 0, 285, 480);
-        SDL_RenderDrawLineF(renderer, 315, 0, 315, 480);
+        SDL_RenderFillRectF(app->renderer, &partition);
+        SDL_RenderDrawLineF(app->renderer, 160, 0, 160, 480);
+        SDL_RenderDrawLineF(app->renderer, 180, 0, 180, 480);
+        SDL_RenderDrawLineF(app->renderer, 195, 0, 195, 480);
+        SDL_RenderDrawLineF(app->renderer, 215, 0, 215, 480);
+        SDL_RenderDrawLineF(app->renderer, 230, 0, 230, 480);
+        SDL_RenderDrawLineF(app->renderer, 250, 0, 250, 480);
+        SDL_RenderDrawLineF(app->renderer, 265, 0, 265, 480);
+        SDL_RenderDrawLineF(app->renderer, 285, 0, 285, 480);
+        SDL_RenderDrawLineF(app->renderer, 315, 0, 315, 480);
     }
 
     float signature = 0;
-    SDL_RenderDrawLineF(renderer, 0, 480 * (1 - (signature - currentFraction) * speed), 155, 480 * (1 - (signature - currentFraction) * speed));
+    SDL_RenderDrawLineF(app->renderer, 0, 480 * (1 - (signature - currentFraction) * speed), 155, 480 * (1 - (signature - currentFraction) * speed));
     if (playMode == PlayMode::DUAL)
     {
-        SDL_RenderDrawLineF(renderer, 160, 480 * (1 - (signature - currentFraction) * speed), 315, 480 * (1 - (signature - currentFraction) * speed));
+        SDL_RenderDrawLineF(app->renderer, 160, 480 * (1 - (signature - currentFraction) * speed), 315, 480 * (1 - (signature - currentFraction) * speed));
     }
     for (int i = 0; i < 1000; i++)
     {
         signature += chart->signatures[i];
-        SDL_RenderDrawLineF(renderer, 0, 480 * (1 - (signature - currentFraction) * speed), 155, 480 * (1 - (signature - currentFraction) * speed));
+        SDL_RenderDrawLineF(app->renderer, 0, 480 * (1 - (signature - currentFraction) * speed), 155, 480 * (1 - (signature - currentFraction) * speed));
         if (playMode == PlayMode::DUAL)
         {
-            SDL_RenderDrawLineF(renderer, 160, 480 * (1 - (signature - currentFraction) * speed), 315, 480 * (1 - (signature - currentFraction) * speed));
+            SDL_RenderDrawLineF(app->renderer, 160, 480 * (1 - (signature - currentFraction) * speed), 315, 480 * (1 - (signature - currentFraction) * speed));
         }
     }
 
     bool empty = true;
-    for (size_t i = 0; i < chart->objs.size(); i++)
+    for (bms::Obj &obj : chart->objs)
     {
-        if (executed[i])
+        if (obj.executed)
         {
             continue;
         }
         empty = false;
 
-        if (chart->objs[i].type == bms::Obj::Type::NOTE)
+        if (obj.type == bms::Obj::Type::NOTE)
         {
-            float fraction = chart->resolveSignatures(chart->objs[i].fraction);
+            float fraction = chart->resolveSignatures(obj.fraction);
             float fractionDiff = fraction - currentFraction;
             SDL_Rect srcRect;
             SDL_FRect dstRect;
             dstRect.y = 480 * (1 - fractionDiff * speed) - 5;
             dstRect.h = 5;
-            switch (chart->objs[i].note.player)
+            switch (obj.note.player)
             {
             case 1:
-                switch (chart->objs[i].note.line)
+                switch (obj.note.line)
                 {
                 case 6:
-                    SDL_SetRenderDrawColor(renderer, 0xff, 0x00, 0x00, 0xff);
+                    SDL_SetRenderDrawColor(app->renderer, 0xff, 0x00, 0x00, 0xff);
                     dstRect.w = 30;
                     dstRect.x = 0;
                     break;
                 case 1:
-                    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+                    SDL_SetRenderDrawColor(app->renderer, 0xff, 0xff, 0xff, 0xff);
                     dstRect.w = 20;
                     dstRect.x = 30;
                     break;
                 case 2:
-                    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0xff, 0xff);
+                    SDL_SetRenderDrawColor(app->renderer, 0x00, 0xff, 0xff, 0xff);
                     dstRect.w = 15;
                     dstRect.x = 50;
                     break;
                 case 3:
-                    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+                    SDL_SetRenderDrawColor(app->renderer, 0xff, 0xff, 0xff, 0xff);
                     dstRect.w = 20;
                     dstRect.x = 65;
                     break;
                 case 4:
-                    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0xff, 0xff);
+                    SDL_SetRenderDrawColor(app->renderer, 0x00, 0xff, 0xff, 0xff);
                     dstRect.w = 15;
                     dstRect.x = 85;
                     break;
                 case 5:
-                    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+                    SDL_SetRenderDrawColor(app->renderer, 0xff, 0xff, 0xff, 0xff);
                     dstRect.w = 20;
                     dstRect.x = 100;
                     break;
                 case 8:
-                    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0xff, 0xff);
+                    SDL_SetRenderDrawColor(app->renderer, 0x00, 0xff, 0xff, 0xff);
                     dstRect.w = 15;
                     dstRect.x = 120;
                     break;
                 case 9:
-                    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+                    SDL_SetRenderDrawColor(app->renderer, 0xff, 0xff, 0xff, 0xff);
                     dstRect.w = 20;
                     dstRect.x = 135;
                     break;
                 }
                 break;
             case 2:
-                switch (chart->objs[i].note.line)
+                switch (obj.note.line)
                 {
                 case 6:
-                    SDL_SetRenderDrawColor(renderer, 0xff, 0x00, 0x00, 0xff);
+                    SDL_SetRenderDrawColor(app->renderer, 0xff, 0x00, 0x00, 0xff);
                     dstRect.w = 30;
                     dstRect.x = 285;
                     break;
                 case 1:
-                    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+                    SDL_SetRenderDrawColor(app->renderer, 0xff, 0xff, 0xff, 0xff);
                     dstRect.w = 20;
                     dstRect.x = 160;
                     break;
                 case 2:
-                    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0xff, 0xff);
+                    SDL_SetRenderDrawColor(app->renderer, 0x00, 0xff, 0xff, 0xff);
                     dstRect.w = 15;
                     dstRect.x = 180;
                     break;
                 case 3:
-                    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+                    SDL_SetRenderDrawColor(app->renderer, 0xff, 0xff, 0xff, 0xff);
                     dstRect.w = 20;
                     dstRect.x = 195;
                     break;
                 case 4:
-                    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0xff, 0xff);
+                    SDL_SetRenderDrawColor(app->renderer, 0x00, 0xff, 0xff, 0xff);
                     dstRect.w = 15;
                     dstRect.x = 215;
                     break;
                 case 5:
-                    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+                    SDL_SetRenderDrawColor(app->renderer, 0xff, 0xff, 0xff, 0xff);
                     dstRect.w = 20;
                     dstRect.x = 230;
                     break;
                 case 8:
-                    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0xff, 0xff);
+                    SDL_SetRenderDrawColor(app->renderer, 0x00, 0xff, 0xff, 0xff);
                     dstRect.w = 15;
                     dstRect.x = 250;
                     break;
                 case 9:
-                    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+                    SDL_SetRenderDrawColor(app->renderer, 0xff, 0xff, 0xff, 0xff);
                     dstRect.w = 20;
                     dstRect.x = 265;
                     break;
                 }
                 break;
             }
-            if (chart->objs[i].note.end)
+            if (obj.note.end)
             {
-                const bms::Obj &note = chart->objs[i];
+                const bms::Obj &note = obj;
                 const bms::Obj &unt = *std::find_if(chart->objs.rbegin(), chart->objs.rend(), [&note](const bms::Obj &a)
                                                     { return a.type == bms::Obj::Type::NOTE && a.note.player == note.note.player && a.note.line == note.note.line && a.fraction < note.fraction; });
                 dstRect.h = (fraction - chart->resolveSignatures(unt.fraction)) * speed * 480;
                 dstRect.x += 5;
                 dstRect.w -= 10;
             }
-            SDL_RenderFillRectF(renderer, &dstRect);
+            SDL_RenderFillRectF(app->renderer, &dstRect);
         }
-        else if (chart->objs[i].type == bms::Obj::Type::BOMB)
+        else if (obj.type == bms::Obj::Type::BOMB)
         {
-            float fractionDiff = chart->resolveSignatures(chart->objs[i].fraction) - currentFraction;
+            float fractionDiff = chart->resolveSignatures(obj.fraction) - currentFraction;
             SDL_FRect dstRect;
             dstRect.y = 480 * (1 - fractionDiff * speed) - 5;
             dstRect.h = 5;
-            SDL_SetRenderDrawColor(renderer, 0xff, 0x80, 0x80, 0xff);
-            switch (chart->objs[i].note.player)
+            SDL_SetRenderDrawColor(app->renderer, 0xff, 0x80, 0x80, 0xff);
+            switch (obj.note.player)
             {
             case 1:
-                switch (chart->objs[i].note.line)
+                switch (obj.note.line)
                 {
                 case 6:
                     dstRect.w = 30;
@@ -270,7 +281,7 @@ void PlayScene::draw(SDL_Renderer *renderer)
                 }
                 break;
             case 2:
-                switch (chart->objs[i].note.line)
+                switch (obj.note.line)
                 {
                 case 6:
                     dstRect.w = 30;
@@ -307,29 +318,57 @@ void PlayScene::draw(SDL_Renderer *renderer)
                 }
                 break;
             }
-            SDL_RenderFillRectF(renderer, &dstRect);
+            SDL_RenderFillRectF(app->renderer, &dstRect);
         }
 
-        if (chart->objs[i].time > currentTime)
+        if (obj.time > currentTime)
         {
             continue;
         }
-        executed[i] = true;
-        switch (chart->objs[i].type)
+        switch (obj.type)
         {
         case bms::Obj::Type::BGM:
-            audio::playAudio(chart->objs[i].bgm.key);
+            audio::playAudio(obj.bgm.key);
+            obj.executed = true;
             break;
         case bms::Obj::Type::NOTE:
-            if (!chart->objs[i].note.end)
+            if (automatic)
             {
-                audio::playAudio(chart->objs[i].note.key);
+                if (!obj.note.end)
+                {
+                    keydown(obj.note.player, obj.note.line);
+                }
+                else
+                {
+                    keyup(obj.note.player, obj.note.line);
+                }
+            }
+            else
+            {
+                if (!obj.note.end)
+                {
+                    if (currentTime - obj.time > judgeLine[chart->rank][4])
+                    {
+                        obj.executed = true;
+                        judge(JudgeType::POOR);
+                    }
+                }
+                else
+                {
+                    obj.executed = true;
+                }
             }
             break;
         case bms::Obj::Type::BMP:
+            obj.executed = true;
             break;
         case bms::Obj::Type::BOMB:
+            if (currentTime - obj.time > judgeLine[chart->rank][2])
+            {
+                obj.executed = true;
+            }
         case bms::Obj::Type::INVISIBLE:
+            obj.executed = true;
             break;
         }
     }
@@ -343,15 +382,15 @@ void PlayScene::draw(SDL_Renderer *renderer)
         SDL_DestroyTexture(bpmDisplay);
         if (chart->sectors[sectorIdx].bpm > 0)
         {
-            bpmDisplay = font::renderText(renderer, std::to_string((int)chart->sectors[sectorIdx].bpm).substr(0, 3));
+            bpmDisplay = font::renderText(app->renderer, std::to_string((int)chart->sectors[sectorIdx].bpm).substr(0, 3));
         }
         else if (sectorIdx > 0)
         {
-            bpmDisplay = font::renderText(renderer, std::to_string((int)chart->sectors[sectorIdx - 1].bpm).substr(0, 3));
+            bpmDisplay = font::renderText(app->renderer, std::to_string((int)chart->sectors[sectorIdx - 1].bpm).substr(0, 3));
         }
         else
         {
-            bpmDisplay = font::renderText(renderer, "0");
+            bpmDisplay = font::renderText(app->renderer, "0");
         }
         if (playMode == PlayMode::SINGLE)
         {
@@ -366,7 +405,20 @@ void PlayScene::draw(SDL_Renderer *renderer)
             bpmDisplayRect = {480 - (float)w / h * 10, 450, (float)w / h * 20, 20};
         }
     }
-    SDL_RenderCopyF(renderer, bpmDisplay, NULL, &bpmDisplayRect);
+    SDL_RenderCopyF(app->renderer, bpmDisplay, NULL, &bpmDisplayRect);
+    if (judgeDisplay)
+    {
+        SDL_RenderCopyF(app->renderer, judgeDisplay, NULL, &judgeDisplayRect[0]);
+        if (playMode == PlayMode::DUAL)
+        {
+            SDL_RenderCopyF(app->renderer, judgeDisplay, NULL, &judgeDisplayRect[1]);
+        }
+        if (judgeTime < currentTime)
+        {
+            SDL_DestroyTexture(judgeDisplay);
+            judgeDisplay = NULL;
+        }
+    }
     if (empty && !audio::isPlayingAudio())
     {
         app->changeScene(new ListScene(app));
@@ -376,7 +428,10 @@ void PlayScene::draw(SDL_Renderer *renderer)
 void PlayScene::release()
 {
     SDL_DestroyTexture(bpmDisplay);
-    delete[] executed;
+    if (judgeDisplay)
+    {
+        SDL_DestroyTexture(judgeDisplay);
+    }
     delete chart;
     audio::releaseAudio();
     file::initialise();
@@ -384,10 +439,254 @@ void PlayScene::release()
 
 void PlayScene::onkeydown(SDL_KeyboardEvent key)
 {
-    //
+    if (!key.repeat && !automatic)
+    {
+        switch (key.keysym.sym)
+        {
+        case SDLK_LSHIFT:
+        case SDLK_LCTRL:
+            keydown(1, 6);
+            break;
+        case SDLK_z:
+            keydown(1, 1);
+            break;
+        case SDLK_s:
+            keydown(1, 2);
+            break;
+        case SDLK_x:
+            keydown(1, 3);
+            break;
+        case SDLK_d:
+            keydown(1, 4);
+            break;
+        case SDLK_c:
+            keydown(1, 5);
+            break;
+        case SDLK_f:
+            keydown(1, 8);
+            break;
+        case SDLK_v:
+            keydown(1, 9);
+            break;
+        case SDLK_RSHIFT:
+        case SDLK_RCTRL:
+            keydown(2, 6);
+            break;
+        case SDLK_m:
+            keydown(2, 1);
+            break;
+        case SDLK_k:
+            keydown(2, 2);
+            break;
+        case SDLK_COMMA:
+            keydown(2, 3);
+            break;
+        case SDLK_l:
+            keydown(2, 4);
+            break;
+        case SDLK_PERIOD:
+            keydown(2, 5);
+            break;
+        case SDLK_SEMICOLON:
+            keydown(2, 8);
+            break;
+        case SDLK_SLASH:
+            keydown(2, 9);
+            break;
+        }
+    }
 }
 
 void PlayScene::onkeyup(SDL_KeyboardEvent key)
 {
-    //
+    if (!automatic)
+    {
+        switch (key.keysym.sym)
+        {
+        case SDLK_LSHIFT:
+        case SDLK_LCTRL:
+            keyup(1, 6);
+            break;
+        case SDLK_z:
+            keyup(1, 1);
+            break;
+        case SDLK_s:
+            keyup(1, 2);
+            break;
+        case SDLK_x:
+            keyup(1, 3);
+            break;
+        case SDLK_d:
+            keyup(1, 4);
+            break;
+        case SDLK_c:
+            keyup(1, 5);
+            break;
+        case SDLK_f:
+            keyup(1, 8);
+            break;
+        case SDLK_v:
+            keyup(1, 9);
+            break;
+        case SDLK_RSHIFT:
+        case SDLK_RCTRL:
+            keyup(2, 6);
+            break;
+        case SDLK_m:
+            keyup(2, 1);
+            break;
+        case SDLK_k:
+            keyup(2, 2);
+            break;
+        case SDLK_COMMA:
+            keyup(2, 3);
+            break;
+        case SDLK_l:
+            keyup(2, 4);
+            break;
+        case SDLK_PERIOD:
+            keyup(2, 5);
+            break;
+        case SDLK_SEMICOLON:
+            keyup(2, 8);
+            break;
+        case SDLK_SLASH:
+            keyup(2, 9);
+            break;
+        }
+    }
+}
+
+void PlayScene::keydown(int player, int line)
+{
+    pressed[std::make_pair(player, line)] = true;
+    std::vector<bms::Obj>::iterator iter = std::find_if(chart->objs.begin(), chart->objs.end(), [player, line](const bms::Obj &a)
+                                                        { return a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line && !a.note.end && !a.executed; });
+    float currentTime = (SDL_GetTicks() - timer) * 0.001f;
+    if (iter != chart->objs.end())
+    {
+        bms::Obj &note = *iter;
+        if (std::abs(note.time - currentTime) < judgeLine[chart->rank][0])
+        {
+            judge(JudgeType::JUST);
+            note.executed = true;
+        }
+        else if (std::abs(note.time - currentTime) < judgeLine[chart->rank][1])
+        {
+            judge(JudgeType::GREAT);
+            note.executed = true;
+        }
+        else if (std::abs(note.time - currentTime) < judgeLine[chart->rank][2])
+        {
+            judge(JudgeType::GOOD);
+            note.executed = true;
+        }
+        else if (std::abs(note.time - currentTime) < judgeLine[chart->rank][3])
+        {
+            judge(JudgeType::BAD);
+            note.executed = true;
+        }
+        else if (std::abs(note.time - currentTime) < judgeLine[chart->rank][4])
+        {
+            judge(JudgeType::GPOOR);
+        }
+        if (note.executed)
+        {
+            audio::playAudio(note.note.key);
+        }
+        else
+        {
+            iter = std::find_if(chart->objs.begin(), chart->objs.end(), [player, line](const bms::Obj &a)
+                                { return a.type == bms::Obj::Type::BOMB && a.misc.player == player && a.misc.line == line && !a.executed; });
+            if (iter != chart->objs.end())
+            {
+                bms::Obj &bomb = *iter;
+                if (std::abs(note.time - currentTime) < judgeLine[chart->rank][2])
+                {
+                    bomb.executed = true;
+                }
+                else
+                {
+                    goto none;
+                }
+            }
+            else
+            {
+            none:
+                std::vector<bms::Obj>::reverse_iterator riter = std::find_if(chart->objs.rbegin(), chart->objs.rend(), [player, line](const bms::Obj &a)
+                                                                             { return (a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line || a.type == bms::Obj::Type::INVISIBLE && a.misc.player == player && a.misc.line == line) && a.executed; });
+                if (riter != chart->objs.rend())
+                {
+                    switch (riter->type)
+                    {
+                    case bms::Obj::Type::NOTE:
+                        audio::playAudio(riter->note.key);
+                        break;
+                    case bms::Obj::Type::INVISIBLE:
+                        audio::playAudio(riter->misc.key);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void PlayScene::keyup(int player, int line)
+{
+    pressed[std::make_pair(player, line)] = false;
+}
+
+void PlayScene::judge(JudgeType j)
+{
+    judgeTime = (SDL_GetTicks() - timer) * 0.001f + 1.0f;
+    if (judgeDisplay)
+    {
+        SDL_DestroyTexture(judgeDisplay);
+    }
+    switch (j)
+    {
+    case JudgeType::JUST:
+        combo++;
+        gauge = std::min(gauge + chart->total / noteCnt, 100.0f);
+        judgeDisplay = font::renderText(app->renderer, "GREAT " + std::to_string(combo));
+        SDL_SetTextureColorMod(judgeDisplay, 0xcc, 0xcc, 0xcc);
+        break;
+    case JudgeType::GREAT:
+        combo++;
+        gauge = std::min(gauge + chart->total / noteCnt, 100.0f);
+        judgeDisplay = font::renderText(app->renderer, "GREAT " + std::to_string(combo));
+        SDL_SetTextureColorMod(judgeDisplay, 0xff, 0xd7, 0x00);
+        break;
+    case JudgeType::GOOD:
+        combo++;
+        gauge = std::min(gauge + chart->total / noteCnt * 0.5f, 100.0f);
+        judgeDisplay = font::renderText(app->renderer, "GOOD " + std::to_string(combo));
+        SDL_SetTextureColorMod(judgeDisplay, 0xad, 0xff, 0x2f);
+        break;
+    case JudgeType::BAD:
+        combo = 0;
+        gauge = std::max(gauge - 4, 0.0f);
+        judgeDisplay = font::renderText(app->renderer, "BAD");
+        SDL_SetTextureColorMod(judgeDisplay, 0xee, 0x82, 0xee);
+        break;
+    case JudgeType::POOR:
+        combo = 0;
+        gauge = std::max(gauge - 6, 0.0f);
+        judgeDisplay = font::renderText(app->renderer, "POOR");
+        SDL_SetTextureColorMod(judgeDisplay, 0xdc, 0x14, 0x3c);
+        break;
+    case JudgeType::GPOOR:
+        gauge = std::max(gauge - 2, 0.0f);
+        judgeDisplay = font::renderText(app->renderer, "POOR");
+        SDL_SetTextureColorMod(judgeDisplay, 0xdc, 0x14, 0x3c);
+        break;
+    }
+    int w, h;
+    SDL_QueryTexture(judgeDisplay, NULL, NULL, &w, &h);
+    judgeDisplayRect[0] = {77.5f - (float)w / h * 20, 335, (float)w / h * 40, 40};
+    if (playMode == PlayMode::DUAL)
+    {
+        judgeDisplayRect[1] = {237.5f - (float)w / h * 20, 335, (float)w / h * 40, 40};
+    }
 }

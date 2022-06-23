@@ -12,6 +12,7 @@ namespace rl
     private:
         bool loaded;
         bool selected;
+        bool autoSelected;    
         Uint32 timer;
         SDL_Texture *loading;
         SDL_FRect loadingRect;
@@ -35,12 +36,12 @@ namespace rl
         std::vector<info_t> infos;
         std::size_t index;
         bms::Chart *chart;
-        void onload(SDL_Renderer *renderer);
+        void onload();
 
     public:
         ListScene(App *app) : Scene(app) {}
-        void initialise(SDL_Renderer *renderer);
-        void draw(SDL_Renderer *renderer);
+        void initialise();
+        void draw();
         void release();
         void onkeydown(SDL_KeyboardEvent event);
     };

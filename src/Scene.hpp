@@ -14,8 +14,8 @@ namespace rl
 
     public:
         Scene(App *app) : app(app) {}
-        virtual void initialise(SDL_Renderer *renderer) {}
-        virtual void draw(SDL_Renderer *renderer) {}
+        virtual void initialise() {}
+        virtual void draw() {}
         virtual void release() {}
         virtual void onkeydown(SDL_KeyboardEvent key) {}
         virtual void onkeyup(SDL_KeyboardEvent key) {}

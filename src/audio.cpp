@@ -1,18 +1,20 @@
 #include "audio.hpp"
 #include <SDL_mixer.h>
+#include <map>
 
 using namespace rl;
 
 static Mix_Chunk *audios[2000];
 static Mix_Music *music;
 
+static std::map<int, int> channelMap;
+
 static std::string possibleFormats[] = {".wav", ".ogg", ".flac", ".mp3"};
 
 void audio::initialise()
 {
     Mix_Init(MIX_INIT_OGG | MIX_INIT_OPUS | MIX_INIT_FLAC | MIX_INIT_MP3);
-    Mix_OpenAudio(22050, AUDIO_S16SYS, 2, 2048);
-    Mix_AllocateChannels(2000);
+    Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 1024);
 }
 
 void audio::loadAudio(int index, const std::string &file)
@@ -34,16 +36,30 @@ void audio::loadAudio(int index, const std::string &file)
 
 void audio::playAudio(int index)
 {
-    if (Mix_Playing(index))
+    if (channelMap.find(index) != channelMap.end() && Mix_Playing(channelMap[index]))
     {
-        Mix_HaltChannel(index);
+        Mix_HaltChannel(channelMap[index]);
     }
-    Mix_PlayChannel(index, audios[index], 0);
+    int channel = Mix_PlayChannel(-1, audios[index], 0);
+    while (channel == -1)
+    {
+        Mix_AllocateChannels(Mix_AllocateChannels(-1) + 5);
+        channel = Mix_PlayChannel(-1, audios[index], 0);
+    }
+    for (std::map<int, int>::iterator i = channelMap.begin(), n = i; i != channelMap.end(); i = n)
+    {
+        ++n;
+        if (i->second == channel)
+        {
+            channelMap.erase(i);
+        }
+    }
+    channelMap[index] = channel;
 }
 
 bool audio::isPlayingAudio()
 {
-    for (int i = 0; i < 2000; i++)
+    for (int i = 0; i < Mix_AllocateChannels(-1); i++)
     {
         if (Mix_Playing(i))
         {

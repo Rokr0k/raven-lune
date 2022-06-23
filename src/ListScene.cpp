@@ -7,49 +7,49 @@
 
 using namespace rl;
 
-void ListScene::initialise(SDL_Renderer *renderer)
+void ListScene::initialise()
 {
     int w, h;
     loaded = file::loading.wait_for(std::chrono::nanoseconds(1)) == std::future_status::ready;
     selected = false;
-    loading = font::renderText(renderer, "Loading...");
+    loading = font::renderText(app->renderer, "Loading...");
     SDL_QueryTexture(loading, NULL, NULL, &w, &h);
     loadingRect = {0, 0, (float)w / h * 40, 40};
     if (loaded)
     {
-        onload(renderer);
+        onload();
     }
 }
 
-void ListScene::draw(SDL_Renderer *renderer)
+void ListScene::draw()
 {
     if (!loaded)
     {
         loaded = file::loading.wait_for(std::chrono::nanoseconds(1)) == std::future_status::ready;
-        SDL_RenderCopyF(renderer, loading, NULL, &loadingRect);
+        SDL_RenderCopyF(app->renderer, loading, NULL, &loadingRect);
         if (loaded)
         {
-            onload(renderer);
+            onload();
         }
     }
     else if (!selected)
     {
         if (index < infos.size())
         {
-            SDL_RenderCopyF(renderer, infos[index].genre, NULL, &infos[index].genreRect);
-            SDL_RenderCopyF(renderer, infos[index].title, NULL, &infos[index].titleRect);
-            SDL_RenderCopyF(renderer, infos[index].subtitle, NULL, &infos[index].subtitleRect);
-            SDL_RenderCopyF(renderer, infos[index].artist, NULL, &infos[index].artistRect);
-            SDL_RenderCopyF(renderer, infos[index].level, NULL, &infos[index].levelRect);
-            SDL_RenderCopyF(renderer, infos[index].banner, NULL, &infos[index].bannerRect);
+            SDL_RenderCopyF(app->renderer, infos[index].genre, NULL, &infos[index].genreRect);
+            SDL_RenderCopyF(app->renderer, infos[index].title, NULL, &infos[index].titleRect);
+            SDL_RenderCopyF(app->renderer, infos[index].subtitle, NULL, &infos[index].subtitleRect);
+            SDL_RenderCopyF(app->renderer, infos[index].artist, NULL, &infos[index].artistRect);
+            SDL_RenderCopyF(app->renderer, infos[index].level, NULL, &infos[index].levelRect);
+            SDL_RenderCopyF(app->renderer, infos[index].banner, NULL, &infos[index].bannerRect);
         }
     }
     else
     {
-        SDL_RenderCopyF(renderer, infos[index].stagefile, NULL, &infos[index].stagefileRect);
+        SDL_RenderCopyF(app->renderer, infos[index].stagefile, NULL, &infos[index].stagefileRect);
         if (timer < SDL_GetTicks())
         {
-            app->changeScene(new PlayScene(app, chart));
+            app->changeScene(new PlayScene(app, chart, autoSelected));
         }
     }
 }
@@ -74,6 +74,17 @@ void ListScene::onkeydown(SDL_KeyboardEvent key)
         if (loaded && !selected && index < infos.size())
         {
             selected = true;
+            autoSelected = false;
+            timer = SDL_GetTicks() + 2000;
+            chart = file::charts[index];
+            file::charts.erase(file::charts.begin() + index);
+        }
+        break;
+    case SDLK_SPACE:
+        if (loaded && !selected && index < infos.size())
+        {
+            selected = true;
+            autoSelected = true;
             timer = SDL_GetTicks() + 2000;
             chart = file::charts[index];
             file::charts.erase(file::charts.begin() + index);
@@ -97,31 +108,31 @@ void ListScene::release()
     }
 }
 
-void ListScene::onload(SDL_Renderer *renderer)
+void ListScene::onload()
 {
     index = 0;
     for (const bms::Chart *chart : file::charts)
     {
         info_t info = {};
         int w, h;
-        info.genre = font::renderText(renderer, chart->genre);
+        info.genre = font::renderText(app->renderer, chart->genre);
         SDL_QueryTexture(info.genre, NULL, NULL, &w, &h);
         info.genreRect = {20, 20, std::min((float)w / h * 40, 600.0f), 40};
-        info.title = font::renderText(renderer, chart->title);
+        info.title = font::renderText(app->renderer, chart->title);
         SDL_QueryTexture(info.title, NULL, NULL, &w, &h);
         info.titleRect = {20, 60, std::min((float)w / h * 60, 600.0f), 60};
-        info.subtitle = font::renderText(renderer, chart->subtitle);
+        info.subtitle = font::renderText(app->renderer, chart->subtitle);
         SDL_QueryTexture(info.subtitle, NULL, NULL, &w, &h);
         info.subtitleRect = {20, 120, std::min((float)w / h * 40, 600.0f), 40};
-        info.artist = font::renderText(renderer, chart->artist);
+        info.artist = font::renderText(app->renderer, chart->artist);
         SDL_QueryTexture(info.artist, NULL, NULL, &w, &h);
         info.artistRect = {20, 160, std::min((float)w / h * 40, 600.0f), 40};
-        info.level = font::renderText(renderer, std::to_string(chart->playLevel));
+        info.level = font::renderText(app->renderer, std::to_string(chart->playLevel));
         SDL_QueryTexture(info.level, NULL, NULL, &w, &h);
         info.levelRect = {20, 200, std::min((float)w / h * 60, 600.0f), 60};
-        info.banner = image::loadImage(renderer, chart->banner.c_str());
+        info.banner = image::loadImage(app->renderer, chart->banner.c_str());
         info.bannerRect = {0, 480 - 1024.0f / 6, 640, 1024.0f / 6};
-        info.stagefile = image::loadImage(renderer, chart->stagefile.c_str());
+        info.stagefile = image::loadImage(app->renderer, chart->stagefile.c_str());
         info.stagefileRect = {0, 0, 640, 480};
         switch (chart->difficulty)
         {

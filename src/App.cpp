@@ -17,10 +17,11 @@ App::App(Scene *initialScene)
     audio::initialise();
     window = SDL_CreateWindow("Raven Lune", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, 0);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
     scene = initialScene;
     if (scene)
     {
-        scene->initialise(renderer);
+        scene->initialise();
     }
 }
 
@@ -68,7 +69,7 @@ int App::loop()
         SDL_RenderClear(renderer);
         if (scene)
         {
-            scene->draw(renderer);
+            scene->draw();
         }
         SDL_RenderPresent(renderer);
     }
@@ -80,5 +81,5 @@ void App::changeScene(Scene *newScene)
     scene->release();
     delete scene;
     scene = newScene;
-    scene->initialise(renderer);
+    scene->initialise();
 }
