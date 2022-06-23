@@ -53,6 +53,18 @@ bool audio::isPlayingAudio()
     return false;
 }
 
+void audio::releaseAudio()
+{
+    for (int i = 0; i < 2000; i++)
+    {
+        if (audios[i])
+        {
+            Mix_FreeChunk(audios[i]);
+            audios[i] = NULL;
+        }
+    }
+}
+
 void audio::playMusic(const std::string &file)
 {
     if (music)
@@ -67,6 +79,11 @@ void audio::playMusic(const std::string &file)
 void audio::stopMusic()
 {
     Mix_HaltMusic();
+    if (music)
+    {
+        Mix_FreeMusic(music);
+        music = NULL;
+    }
 }
 
 void audio::release()
@@ -76,11 +93,13 @@ void audio::release()
         if (audios[i])
         {
             Mix_FreeChunk(audios[i]);
+            audios[i] = NULL;
         }
     }
     if (music)
     {
         Mix_FreeMusic(music);
+        music = NULL;
     }
     Mix_CloseAudio();
     Mix_Quit();

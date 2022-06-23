@@ -13,6 +13,9 @@ namespace rl
         bms::Chart *chart;
         bool *executed;
         std::chrono::system_clock::time_point timer;
+        SDL_Texture *notes;
+        SDL_Texture *bombs;
+        float speed;
 
     public:
         PlayScene(App *app, bms::Chart *chart) : Scene(app), chart(chart) {}

@@ -11,6 +11,7 @@ namespace rl
         void playAudio(int index);
         void stopAudio(int index);
         bool isPlayingAudio();
+        void releaseAudio();
         void playMusic(const std::string &file);
         void stopMusic();
         void release();
