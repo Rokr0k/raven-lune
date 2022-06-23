@@ -3,6 +3,7 @@
 #include "file.hpp"
 #include "audio.hpp"
 #include "image.hpp"
+#include <algorithm>
 
 using namespace rl;
 
@@ -21,8 +22,16 @@ void PlayScene::initialise(SDL_Renderer *renderer)
     {
         executed[i] = false;
     }
-    notes = image::loadImage(renderer, "res/notes.png");
-    bombs = image::loadImage(renderer, "res/bombs.png");
+
+    if (std::find_if(chart->objs.begin(), chart->objs.end(), [](const bms::Obj &a)
+                     { return a.type == bms::Obj::Type::NOTE && a.note.player == 2 || (a.type == bms::Obj::Type::BOMB || a.type == bms::Obj::Type::INVISIBLE) && a.misc.player == 2; }) == chart->objs.end())
+    {
+        playMode = PlayMode::SINGLE;
+    }
+    else
+    {
+        playMode = PlayMode::DUAL;
+    }
 
     timer = std::chrono::high_resolution_clock::now();
 
@@ -33,6 +42,48 @@ void PlayScene::draw(SDL_Renderer *renderer)
 {
     float currentTime = (std::chrono::high_resolution_clock::now() - timer).count() * 0.000000001f;
     float currentFraction = chart->timeToFraction(currentTime);
+
+    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+
+    SDL_RenderDrawLineF(renderer, 0, 0, 0, 480);
+    SDL_RenderDrawLineF(renderer, 30, 0, 30, 480);
+    SDL_RenderDrawLineF(renderer, 50, 0, 50, 480);
+    SDL_RenderDrawLineF(renderer, 65, 0, 65, 480);
+    SDL_RenderDrawLineF(renderer, 85, 0, 85, 480);
+    SDL_RenderDrawLineF(renderer, 100, 0, 100, 480);
+    SDL_RenderDrawLineF(renderer, 120, 0, 120, 480);
+    SDL_RenderDrawLineF(renderer, 135, 0, 135, 480);
+    SDL_RenderDrawLineF(renderer, 155, 0, 155, 480);
+    if (playMode == PlayMode::DUAL)
+    {
+        SDL_FRect partition = {155, 0, 5, 480};
+        SDL_RenderFillRectF(renderer, &partition);
+        SDL_RenderDrawLineF(renderer, 160, 0, 160, 480);
+        SDL_RenderDrawLineF(renderer, 180, 0, 180, 480);
+        SDL_RenderDrawLineF(renderer, 195, 0, 195, 480);
+        SDL_RenderDrawLineF(renderer, 215, 0, 215, 480);
+        SDL_RenderDrawLineF(renderer, 230, 0, 230, 480);
+        SDL_RenderDrawLineF(renderer, 250, 0, 250, 480);
+        SDL_RenderDrawLineF(renderer, 265, 0, 265, 480);
+        SDL_RenderDrawLineF(renderer, 285, 0, 285, 480);
+        SDL_RenderDrawLineF(renderer, 315, 0, 315, 480);
+    }
+
+    float signature = 0;
+    SDL_RenderDrawLineF(renderer, 0, 480 * (1 - (signature - currentFraction) * speed), 155, 480 * (1 - (signature - currentFraction) * speed));
+    if (playMode == PlayMode::DUAL)
+    {
+        SDL_RenderDrawLineF(renderer, 160, 480 * (1 - (signature - currentFraction) * speed), 315, 480 * (1 - (signature - currentFraction) * speed));
+    }
+    for (int i = 0; i < 1000; i++)
+    {
+        signature += chart->signatures[i];
+        SDL_RenderDrawLineF(renderer, 0, 480 * (1 - (signature - currentFraction) * speed), 155, 480 * (1 - (signature - currentFraction) * speed));
+        if (playMode == PlayMode::DUAL)
+        {
+            SDL_RenderDrawLineF(renderer, 160, 480 * (1 - (signature - currentFraction) * speed), 315, 480 * (1 - (signature - currentFraction) * speed));
+        }
+    }
 
     bool empty = true;
     for (size_t i = 0; i < chart->objs.size(); i++)
@@ -45,65 +96,56 @@ void PlayScene::draw(SDL_Renderer *renderer)
 
         if (chart->objs[i].type == bms::Obj::Type::NOTE)
         {
-            float fractionDiff = chart->resolveSignatures(chart->objs[i].fraction) - currentFraction;
+            float fraction = chart->resolveSignatures(chart->objs[i].fraction);
+            float fractionDiff = fraction - currentFraction;
             SDL_Rect srcRect;
             SDL_FRect dstRect;
-            srcRect.x = 0;
-            srcRect.h = 10;
-            dstRect.y = 480 * (1 - fractionDiff * speed) - 10;
-            dstRect.h = 10;
+            dstRect.y = 480 * (1 - fractionDiff * speed) - 5;
+            dstRect.h = 5;
             switch (chart->objs[i].note.player)
             {
             case 1:
                 switch (chart->objs[i].note.line)
                 {
                 case 6:
-                    srcRect.y = 0;
-                    srcRect.w = 60;
-                    dstRect.w = 60;
+                    SDL_SetRenderDrawColor(renderer, 0xff, 0x00, 0x00, 0xff);
+                    dstRect.w = 30;
                     dstRect.x = 0;
                     break;
                 case 1:
-                    srcRect.y = 10;
-                    srcRect.w = 40;
-                    dstRect.w = 40;
-                    dstRect.x = 60;
+                    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+                    dstRect.w = 20;
+                    dstRect.x = 30;
                     break;
                 case 2:
-                    srcRect.y = 20;
-                    srcRect.w = 30;
-                    dstRect.w = 30;
-                    dstRect.x = 100;
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0xff, 0xff);
+                    dstRect.w = 15;
+                    dstRect.x = 50;
                     break;
                 case 3:
-                    srcRect.y = 10;
-                    srcRect.w = 40;
-                    dstRect.w = 40;
-                    dstRect.x = 130;
+                    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+                    dstRect.w = 20;
+                    dstRect.x = 65;
                     break;
                 case 4:
-                    srcRect.y = 20;
-                    srcRect.w = 30;
-                    dstRect.w = 30;
-                    dstRect.x = 170;
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0xff, 0xff);
+                    dstRect.w = 15;
+                    dstRect.x = 85;
                     break;
                 case 5:
-                    srcRect.y = 10;
-                    srcRect.w = 40;
-                    dstRect.w = 40;
-                    dstRect.x = 200;
+                    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+                    dstRect.w = 20;
+                    dstRect.x = 100;
                     break;
                 case 8:
-                    srcRect.y = 20;
-                    srcRect.w = 30;
-                    dstRect.w = 30;
-                    dstRect.x = 240;
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0xff, 0xff);
+                    dstRect.w = 15;
+                    dstRect.x = 120;
                     break;
                 case 9:
-                    srcRect.y = 10;
-                    srcRect.w = 40;
-                    dstRect.w = 40;
-                    dstRect.x = 270;
+                    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+                    dstRect.w = 20;
+                    dstRect.x = 135;
                     break;
                 }
                 break;
@@ -111,119 +153,102 @@ void PlayScene::draw(SDL_Renderer *renderer)
                 switch (chart->objs[i].note.line)
                 {
                 case 6:
-                    srcRect.y = 0;
-                    srcRect.w = 60;
-                    dstRect.w = 60;
-                    dstRect.x = 580;
+                    SDL_SetRenderDrawColor(renderer, 0xff, 0x00, 0x00, 0xff);
+                    dstRect.w = 30;
+                    dstRect.x = 285;
                     break;
                 case 1:
-                    srcRect.y = 10;
-                    srcRect.w = 40;
-                    dstRect.w = 40;
-                    dstRect.x = 330;
+                    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+                    dstRect.w = 20;
+                    dstRect.x = 160;
                     break;
                 case 2:
-                    srcRect.y = 20;
-                    srcRect.w = 30;
-                    dstRect.w = 30;
-                    dstRect.x = 370;
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0xff, 0xff);
+                    dstRect.w = 15;
+                    dstRect.x = 180;
                     break;
                 case 3:
-                    srcRect.y = 10;
-                    srcRect.w = 40;
-                    dstRect.w = 40;
-                    dstRect.x = 400;
+                    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+                    dstRect.w = 20;
+                    dstRect.x = 195;
                     break;
                 case 4:
-                    srcRect.y = 20;
-                    srcRect.w = 30;
-                    dstRect.w = 30;
-                    dstRect.x = 440;
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0xff, 0xff);
+                    dstRect.w = 15;
+                    dstRect.x = 215;
                     break;
                 case 5:
-                    srcRect.y = 10;
-                    srcRect.w = 40;
-                    dstRect.w = 40;
-                    dstRect.x = 470;
+                    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+                    dstRect.w = 20;
+                    dstRect.x = 230;
                     break;
                 case 8:
-                    srcRect.y = 20;
-                    srcRect.w = 30;
-                    dstRect.w = 30;
-                    dstRect.x = 510;
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0xff, 0xff);
+                    dstRect.w = 15;
+                    dstRect.x = 250;
                     break;
                 case 9:
-                    srcRect.y = 10;
-                    srcRect.w = 40;
-                    dstRect.w = 40;
-                    dstRect.x = 540;
+                    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+                    dstRect.w = 20;
+                    dstRect.x = 265;
                     break;
                 }
                 break;
             }
-            SDL_RenderCopyF(renderer, notes, &srcRect, &dstRect);
+            if (chart->objs[i].note.end)
+            {
+                const bms::Obj &note = chart->objs[i];
+                const bms::Obj &unt = *std::find_if(chart->objs.rbegin(), chart->objs.rend(), [&note](const bms::Obj &a)
+                                                    { return a.type == bms::Obj::Type::NOTE && a.note.player == note.note.player && a.note.line == note.note.line && a.fraction < note.fraction; });
+                dstRect.h = (fraction - chart->resolveSignatures(unt.fraction)) * speed * 480;
+                dstRect.x += 5;
+                dstRect.w -= 10;
+            }
+            SDL_RenderFillRectF(renderer, &dstRect);
         }
         else if (chart->objs[i].type == bms::Obj::Type::BOMB)
         {
             float fractionDiff = chart->resolveSignatures(chart->objs[i].fraction) - currentFraction;
-            SDL_Rect srcRect;
             SDL_FRect dstRect;
-            srcRect.x = 0;
-            srcRect.h = 10;
-            dstRect.y = 480 * (1 - fractionDiff * speed) - 10;
-            dstRect.h = 10;
+            dstRect.y = 480 * (1 - fractionDiff * speed) - 5;
+            dstRect.h = 5;
+            SDL_SetRenderDrawColor(renderer, 0xff, 0x80, 0x80, 0xff);
             switch (chart->objs[i].note.player)
             {
             case 1:
                 switch (chart->objs[i].note.line)
                 {
                 case 6:
-                    srcRect.y = 0;
-                    srcRect.w = 60;
-                    dstRect.w = 60;
+                    dstRect.w = 30;
                     dstRect.x = 0;
                     break;
                 case 1:
-                    srcRect.y = 10;
-                    srcRect.w = 40;
-                    dstRect.w = 40;
-                    dstRect.x = 60;
+                    dstRect.w = 20;
+                    dstRect.x = 30;
                     break;
                 case 2:
-                    srcRect.y = 20;
-                    srcRect.w = 30;
-                    dstRect.w = 30;
-                    dstRect.x = 100;
+                    dstRect.w = 15;
+                    dstRect.x = 50;
                     break;
                 case 3:
-                    srcRect.y = 10;
-                    srcRect.w = 40;
-                    dstRect.w = 40;
-                    dstRect.x = 130;
+                    dstRect.w = 20;
+                    dstRect.x = 65;
                     break;
                 case 4:
-                    srcRect.y = 20;
-                    srcRect.w = 30;
-                    dstRect.w = 30;
-                    dstRect.x = 170;
+                    dstRect.w = 15;
+                    dstRect.x = 85;
                     break;
                 case 5:
-                    srcRect.y = 10;
-                    srcRect.w = 40;
-                    dstRect.w = 40;
-                    dstRect.x = 200;
+                    dstRect.w = 20;
+                    dstRect.x = 100;
                     break;
                 case 8:
-                    srcRect.y = 20;
-                    srcRect.w = 30;
-                    dstRect.w = 30;
-                    dstRect.x = 240;
+                    dstRect.w = 15;
+                    dstRect.x = 120;
                     break;
                 case 9:
-                    srcRect.y = 10;
-                    srcRect.w = 40;
-                    dstRect.w = 40;
-                    dstRect.x = 270;
+                    dstRect.w = 20;
+                    dstRect.x = 135;
                     break;
                 }
                 break;
@@ -231,57 +256,41 @@ void PlayScene::draw(SDL_Renderer *renderer)
                 switch (chart->objs[i].note.line)
                 {
                 case 6:
-                    srcRect.y = 0;
-                    srcRect.w = 60;
-                    dstRect.w = 60;
-                    dstRect.x = 580;
+                    dstRect.w = 30;
+                    dstRect.x = 285;
                     break;
                 case 1:
-                    srcRect.y = 10;
-                    srcRect.w = 40;
-                    dstRect.w = 40;
-                    dstRect.x = 330;
+                    dstRect.w = 20;
+                    dstRect.x = 160;
                     break;
                 case 2:
-                    srcRect.y = 20;
-                    srcRect.w = 30;
-                    dstRect.w = 30;
-                    dstRect.x = 370;
+                    dstRect.w = 15;
+                    dstRect.x = 180;
                     break;
                 case 3:
-                    srcRect.y = 10;
-                    srcRect.w = 40;
-                    dstRect.w = 40;
-                    dstRect.x = 400;
+                    dstRect.w = 20;
+                    dstRect.x = 195;
                     break;
                 case 4:
-                    srcRect.y = 20;
-                    srcRect.w = 30;
-                    dstRect.w = 30;
-                    dstRect.x = 440;
+                    dstRect.w = 15;
+                    dstRect.x = 215;
                     break;
                 case 5:
-                    srcRect.y = 10;
-                    srcRect.w = 40;
-                    dstRect.w = 40;
-                    dstRect.x = 470;
+                    dstRect.w = 20;
+                    dstRect.x = 230;
                     break;
                 case 8:
-                    srcRect.y = 20;
-                    srcRect.w = 30;
-                    dstRect.w = 30;
-                    dstRect.x = 510;
+                    dstRect.w = 15;
+                    dstRect.x = 250;
                     break;
                 case 9:
-                    srcRect.y = 10;
-                    srcRect.w = 40;
-                    dstRect.w = 40;
-                    dstRect.x = 540;
+                    dstRect.w = 20;
+                    dstRect.x = 265;
                     break;
                 }
                 break;
             }
-            SDL_RenderCopyF(renderer, bombs, &srcRect, &dstRect);
+            SDL_RenderFillRectF(renderer, &dstRect);
         }
 
         if (chart->objs[i].time > currentTime)
@@ -317,8 +326,6 @@ void PlayScene::release()
 {
     delete[] executed;
     delete chart;
-    SDL_DestroyTexture(notes);
-    SDL_DestroyTexture(bombs);
     audio::releaseAudio();
     file::initialise();
 }

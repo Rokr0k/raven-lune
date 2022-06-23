@@ -12,9 +12,11 @@ namespace rl
     private:
         bms::Chart *chart;
         bool *executed;
+        enum class PlayMode
+        {
+            SINGLE, DUAL
+        } playMode;
         std::chrono::system_clock::time_point timer;
-        SDL_Texture *notes;
-        SDL_Texture *bombs;
         float speed;
 
     public:
