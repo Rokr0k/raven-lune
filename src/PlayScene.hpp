@@ -27,6 +27,8 @@ namespace rl
         size_t sectorIdx;
         std::map<std::pair<int, int>, bool> pressed;
 
+        std::vector<std::pair<float, std::pair<int, int>>> keyupList;
+
         size_t noteCnt;
 
         int combo;
