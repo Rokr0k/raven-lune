@@ -14,7 +14,7 @@ static std::string possibleFormats[] = {".wav", ".ogg", ".flac", ".mp3"};
 void audio::initialise()
 {
     Mix_Init(MIX_INIT_OGG | MIX_INIT_OPUS | MIX_INIT_FLAC | MIX_INIT_MP3);
-    Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 1024);
+    Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 256);
 }
 
 void audio::loadAudio(int index, const std::string &file)
@@ -36,37 +36,33 @@ void audio::loadAudio(int index, const std::string &file)
 
 void audio::playAudio(int index)
 {
-    if (channelMap.find(index) != channelMap.end() && Mix_Playing(channelMap[index]))
+    if (audios[index])
     {
-        Mix_HaltChannel(channelMap[index]);
-    }
-    int channel = Mix_PlayChannel(-1, audios[index], 0);
-    while (channel == -1)
-    {
-        Mix_AllocateChannels(Mix_AllocateChannels(-1) + 5);
-        channel = Mix_PlayChannel(-1, audios[index], 0);
-    }
-    for (std::map<int, int>::iterator i = channelMap.begin(), n = i; i != channelMap.end(); i = n)
-    {
-        ++n;
-        if (i->second == channel)
+        if (channelMap.find(index) != channelMap.end() && Mix_Playing(channelMap[index]))
         {
-            channelMap.erase(i);
+            Mix_HaltChannel(channelMap[index]);
         }
+        int channel = Mix_PlayChannel(-1, audios[index], 0);
+        while (channel == -1)
+        {
+            Mix_AllocateChannels(Mix_AllocateChannels(-1) + 1);
+            channel = Mix_PlayChannel(-1, audios[index], 0);
+        }
+        for (std::map<int, int>::iterator i = channelMap.begin(), n = i; i != channelMap.end(); i = n)
+        {
+            ++n;
+            if (i->second == channel)
+            {
+                channelMap.erase(i);
+            }
+        }
+        channelMap[index] = channel;
     }
-    channelMap[index] = channel;
 }
 
 bool audio::isPlayingAudio()
 {
-    for (int i = 0; i < Mix_AllocateChannels(-1); i++)
-    {
-        if (Mix_Playing(i))
-        {
-            return true;
-        }
-    }
-    return false;
+    return Mix_Playing(-1) > 0;
 }
 
 void audio::releaseAudio()
