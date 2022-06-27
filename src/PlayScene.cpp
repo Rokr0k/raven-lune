@@ -4,6 +4,7 @@
 #include "font.hpp"
 #include "audio.hpp"
 #include "image.hpp"
+#include "bga.hpp"
 #include <algorithm>
 #include <limits>
 
@@ -24,6 +25,13 @@ void PlayScene::initialise()
         if (!chart->wavs[i].empty())
         {
             audio::loadAudio(i, chart->wavs[i]);
+        }
+    }
+    for (int i = 0; i < 1296; i++)
+    {
+        if (!chart->bmps[i].empty())
+        {
+            bga::load(i, chart->bmps[i]);
         }
     }
 
@@ -50,6 +58,11 @@ void PlayScene::initialise()
     judgeDisplay = NULL;
 
     sectorIdx = 0;
+
+    bgas[0] = -1;
+    bgas[1] = -1;
+    bgas[2] = 0;
+    bgaRect = {(640 - (playMode == PlayMode::SINGLE ? 155 : 315) - 256) * 0.5f + (playMode == PlayMode::SINGLE ? 155 : 315), (480 - 256) * 0.5f, 256, 256};
 
     bpmDisplay = font::renderText(app->renderer, std::to_string((int)chart->sectors[sectorIdx].bpm).substr(0, 3));
     if (playMode == PlayMode::SINGLE)
@@ -78,32 +91,6 @@ void PlayScene::draw()
 {
     float currentTime = (SDL_GetTicks() - timer) * 0.001f;
     float currentFraction = chart->timeToFraction(currentTime);
-
-    SDL_SetRenderDrawColor(app->renderer, 0xff, 0xff, 0xff, 0xff);
-
-    SDL_RenderDrawLineF(app->renderer, 0, 0, 0, 480);
-    SDL_RenderDrawLineF(app->renderer, 30, 0, 30, 480);
-    SDL_RenderDrawLineF(app->renderer, 50, 0, 50, 480);
-    SDL_RenderDrawLineF(app->renderer, 65, 0, 65, 480);
-    SDL_RenderDrawLineF(app->renderer, 85, 0, 85, 480);
-    SDL_RenderDrawLineF(app->renderer, 100, 0, 100, 480);
-    SDL_RenderDrawLineF(app->renderer, 120, 0, 120, 480);
-    SDL_RenderDrawLineF(app->renderer, 135, 0, 135, 480);
-    SDL_RenderDrawLineF(app->renderer, 155, 0, 155, 480);
-    if (playMode == PlayMode::DUAL)
-    {
-        SDL_FRect partition = {155, 0, 5, 480};
-        SDL_RenderFillRectF(app->renderer, &partition);
-        SDL_RenderDrawLineF(app->renderer, 160, 0, 160, 480);
-        SDL_RenderDrawLineF(app->renderer, 180, 0, 180, 480);
-        SDL_RenderDrawLineF(app->renderer, 195, 0, 195, 480);
-        SDL_RenderDrawLineF(app->renderer, 215, 0, 215, 480);
-        SDL_RenderDrawLineF(app->renderer, 230, 0, 230, 480);
-        SDL_RenderDrawLineF(app->renderer, 250, 0, 250, 480);
-        SDL_RenderDrawLineF(app->renderer, 265, 0, 265, 480);
-        SDL_RenderDrawLineF(app->renderer, 285, 0, 285, 480);
-        SDL_RenderDrawLineF(app->renderer, 315, 0, 315, 480);
-    }
 
     SDL_SetRenderDrawColor(app->renderer, 0x80, 0x80, 0xff, 0x80);
     if (pressed[std::make_pair(1, 6)])
@@ -188,6 +175,32 @@ void PlayScene::draw()
             SDL_FRect rect = {285, 0, 30, 480};
             SDL_RenderFillRectF(app->renderer, &rect);
         }
+    }
+
+    SDL_SetRenderDrawColor(app->renderer, 0xff, 0xff, 0xff, 0xff);
+
+    SDL_RenderDrawLineF(app->renderer, 0, 0, 0, 480);
+    SDL_RenderDrawLineF(app->renderer, 30, 0, 30, 480);
+    SDL_RenderDrawLineF(app->renderer, 50, 0, 50, 480);
+    SDL_RenderDrawLineF(app->renderer, 65, 0, 65, 480);
+    SDL_RenderDrawLineF(app->renderer, 85, 0, 85, 480);
+    SDL_RenderDrawLineF(app->renderer, 100, 0, 100, 480);
+    SDL_RenderDrawLineF(app->renderer, 120, 0, 120, 480);
+    SDL_RenderDrawLineF(app->renderer, 135, 0, 135, 480);
+    SDL_RenderDrawLineF(app->renderer, 155, 0, 155, 480);
+    if (playMode == PlayMode::DUAL)
+    {
+        SDL_FRect partition = {155, 0, 5, 480};
+        SDL_RenderFillRectF(app->renderer, &partition);
+        SDL_RenderDrawLineF(app->renderer, 160, 0, 160, 480);
+        SDL_RenderDrawLineF(app->renderer, 180, 0, 180, 480);
+        SDL_RenderDrawLineF(app->renderer, 195, 0, 195, 480);
+        SDL_RenderDrawLineF(app->renderer, 215, 0, 215, 480);
+        SDL_RenderDrawLineF(app->renderer, 230, 0, 230, 480);
+        SDL_RenderDrawLineF(app->renderer, 250, 0, 250, 480);
+        SDL_RenderDrawLineF(app->renderer, 265, 0, 265, 480);
+        SDL_RenderDrawLineF(app->renderer, 285, 0, 285, 480);
+        SDL_RenderDrawLineF(app->renderer, 315, 0, 315, 480);
     }
 
     float signature = 0;
@@ -456,6 +469,15 @@ void PlayScene::draw()
             }
             break;
         case bms::Obj::Type::BMP:
+            if (obj.bmp.layer >= 0)
+            {
+                bgas[obj.bmp.layer] = obj.bmp.key;
+            }
+            else
+            {
+                bgas[2] = obj.bmp.key;
+            }
+            bga::start(obj.bmp.key);
             obj.executed = true;
             break;
         case bms::Obj::Type::BOMB:
@@ -529,6 +551,26 @@ void PlayScene::draw()
             judgeDisplay = NULL;
         }
     }
+
+    if (bgas[0] >= 0)
+    {
+        SDL_SetRenderDrawColor(app->renderer, 0x00, 0x00, 0x00, 0xFF);
+        SDL_RenderFillRectF(app->renderer, &bgaRect);
+        SDL_Surface *bga = bga::get(bgas[0]);
+        SDL_Texture *bgaText = SDL_CreateTextureFromSurface(app->renderer, bga);
+        bga::retrn(bgas[0]);
+        SDL_RenderCopyF(app->renderer, bgaText, NULL, &bgaRect);
+        SDL_DestroyTexture(bgaText);
+    }
+    if (bgas[1] >= 0)
+    {
+        SDL_Surface *bga = bga::get(bgas[0]);
+        SDL_Texture *bgaText = SDL_CreateTextureFromSurface(app->renderer, bga);
+        bga::retrn(bgas[0]);
+        SDL_RenderCopyF(app->renderer, bgaText, NULL, &bgaRect);
+        SDL_DestroyTexture(bgaText);
+    }
+
     if (empty && !audio::isPlayingAudio())
     {
         app->changeScene(new ListScene(app));
@@ -545,6 +587,7 @@ void PlayScene::release()
     delete chart;
     audio::releaseAudio();
     file::initialise();
+    bga::release();
 }
 
 void PlayScene::onkeydown(SDL_KeyboardEvent key)

@@ -29,6 +29,9 @@ namespace rl
 
         std::vector<std::pair<float, std::pair<int, int>>> keyupList;
 
+        int bgas[3];
+        SDL_FRect bgaRect;
+
         size_t noteCnt;
 
         int combo;
