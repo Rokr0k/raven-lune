@@ -31,7 +31,7 @@ void PlayScene::initialise()
     {
         if (!chart->bmps[i].empty())
         {
-            bga::load(i, chart->bmps[i]);
+            bga::load(app->renderer, i, chart->bmps[i]);
         }
     }
 
@@ -50,7 +50,20 @@ void PlayScene::initialise()
 
     timer = SDL_GetTicks() + 5000;
 
-    speed = 1;
+    speed = 4;
+    speedDisplay = font::renderText(app->renderer, std::to_string(speed / 4) + "." + std::to_string(speed * 10 / 4 % 10) + std::to_string(speed * 100 / 4 % 10));
+    if (playMode == PlayMode::SINGLE)
+    {
+        int w, h;
+        SDL_QueryTexture(speedDisplay, NULL, NULL, &w, &h);
+        speedDisplayRect = {160, 460, (float)w / h * 20, 20};
+    }
+    else if (playMode == PlayMode::DUAL)
+    {
+        int w, h;
+        SDL_QueryTexture(speedDisplay, NULL, NULL, &w, &h);
+        speedDisplayRect = {320, 460, (float)w / h * 20, 20};
+    }
 
     combo = 0;
     gauge = 20.0f;
@@ -205,18 +218,18 @@ void PlayScene::draw()
     }
 
     float signature = 0;
-    SDL_RenderDrawLineF(app->renderer, 0, 480 * (1 - (signature - currentFraction) * speed), 155, 480 * (1 - (signature - currentFraction) * speed));
+    SDL_RenderDrawLineF(app->renderer, 0, 480 * (1 - (signature - currentFraction) * speed * 0.25f), 155, 480 * (1 - (signature - currentFraction) * speed * 0.25f));
     if (playMode == PlayMode::DUAL)
     {
-        SDL_RenderDrawLineF(app->renderer, 160, 480 * (1 - (signature - currentFraction) * speed), 315, 480 * (1 - (signature - currentFraction) * speed));
+        SDL_RenderDrawLineF(app->renderer, 160, 480 * (1 - (signature - currentFraction) * speed * 0.25f), 315, 480 * (1 - (signature - currentFraction) * speed * 0.25f));
     }
     for (int i = 0; i < 1000; i++)
     {
         signature += chart->signatures[i];
-        SDL_RenderDrawLineF(app->renderer, 0, 480 * (1 - (signature - currentFraction) * speed), 155, 480 * (1 - (signature - currentFraction) * speed));
+        SDL_RenderDrawLineF(app->renderer, 0, 480 * (1 - (signature - currentFraction) * speed * 0.25f), 155, 480 * (1 - (signature - currentFraction) * speed * 0.25f));
         if (playMode == PlayMode::DUAL)
         {
-            SDL_RenderDrawLineF(app->renderer, 160, 480 * (1 - (signature - currentFraction) * speed), 315, 480 * (1 - (signature - currentFraction) * speed));
+            SDL_RenderDrawLineF(app->renderer, 160, 480 * (1 - (signature - currentFraction) * speed * 0.25f), 315, 480 * (1 - (signature - currentFraction) * speed * 0.25f));
         }
     }
 
@@ -235,7 +248,7 @@ void PlayScene::draw()
             float fractionDiff = fraction - currentFraction;
             SDL_Rect srcRect;
             SDL_FRect dstRect;
-            dstRect.y = 480 * (1 - fractionDiff * speed) - 5;
+            dstRect.y = 480 * (1 - fractionDiff * speed * 0.25f) - 5;
             dstRect.h = 5;
             switch (obj.note.player)
             {
@@ -335,7 +348,7 @@ void PlayScene::draw()
                 const bms::Obj &note = obj;
                 const bms::Obj &unt = *std::find_if(chart->objs.rbegin(), chart->objs.rend(), [&note](const bms::Obj &a)
                                                     { return a.type == bms::Obj::Type::NOTE && a.note.player == note.note.player && a.note.line == note.note.line && a.fraction < note.fraction; });
-                dstRect.h = (fraction - chart->resolveSignatures(unt.fraction)) * speed * 480;
+                dstRect.h = (fraction - chart->resolveSignatures(unt.fraction)) * speed * 0.25f * 480;
                 dstRect.x += 5;
                 dstRect.w -= 10;
             }
@@ -345,7 +358,7 @@ void PlayScene::draw()
         {
             float fractionDiff = chart->resolveSignatures(obj.fraction) - currentFraction;
             SDL_FRect dstRect;
-            dstRect.y = 480 * (1 - fractionDiff * speed) - 5;
+            dstRect.y = 480 * (1 - fractionDiff * speed * 0.25f) - 5;
             dstRect.h = 5;
             SDL_SetRenderDrawColor(app->renderer, 0xff, 0x80, 0x80, 0xff);
             switch (obj.note.player)
@@ -478,7 +491,6 @@ void PlayScene::draw()
             {
                 bgas[2] = obj.bmp.key;
             }
-            bga::start(obj.bmp.key);
             obj.executed = true;
             break;
         case bms::Obj::Type::BOMB:
@@ -557,20 +569,21 @@ void PlayScene::draw()
     {
         SDL_SetRenderDrawColor(app->renderer, 0x00, 0x00, 0x00, 0xFF);
         SDL_RenderFillRectF(app->renderer, &bgaRect);
-        SDL_Surface *bga = bga::get(bgas[0]);
-        SDL_Texture *bgaText = SDL_CreateTextureFromSurface(app->renderer, bga);
-        bga::retrn(bgas[0]);
-        SDL_RenderCopyF(app->renderer, bgaText, NULL, &bgaRect);
-        SDL_DestroyTexture(bgaText);
+        SDL_Texture *bga = bga::get(bgas[0]);
+        SDL_RenderCopyF(app->renderer, bga, NULL, &bgaRect);
     }
     if (bgas[1] >= 0)
     {
-        SDL_Surface *bga = bga::get(bgas[0]);
-        SDL_Texture *bgaText = SDL_CreateTextureFromSurface(app->renderer, bga);
-        bga::retrn(bgas[0]);
-        SDL_RenderCopyF(app->renderer, bgaText, NULL, &bgaRect);
-        SDL_DestroyTexture(bgaText);
+        SDL_Texture *bga = bga::get(bgas[1]);
+        SDL_RenderCopyF(app->renderer, bga, NULL, &bgaRect);
     }
+    if (bgas[2] >= 0 && currentTime < judgeTime && (judgeType == JudgeType::POOR || judgeType == JudgeType::GPOOR))
+    {
+        SDL_Texture *bga = bga::get(bgas[2]);
+        SDL_RenderCopyF(app->renderer, bga, NULL, &bgaRect);
+    }
+
+    SDL_RenderCopyF(app->renderer, speedDisplay, NULL, &speedDisplayRect);
 
     if (empty && !audio::isPlayingAudio())
     {
@@ -581,6 +594,7 @@ void PlayScene::draw()
 void PlayScene::release()
 {
     SDL_DestroyTexture(bpmDisplay);
+    SDL_DestroyTexture(speedDisplay);
     if (judgeDisplay)
     {
         SDL_DestroyTexture(judgeDisplay);
@@ -648,6 +662,43 @@ void PlayScene::onkeydown(SDL_KeyboardEvent key)
             keydown(2, 9);
             break;
         }
+    }
+    switch (key.keysym.sym)
+    {
+    case SDLK_UP:
+        speed = std::min(speed + 1, 16);
+        SDL_DestroyTexture(speedDisplay);
+        speedDisplay = font::renderText(app->renderer, std::to_string(speed / 4) + "." + std::to_string(speed * 10 / 4 % 10) + std::to_string(speed * 100 / 4 % 10));
+        if (playMode == PlayMode::SINGLE)
+        {
+            int w, h;
+            SDL_QueryTexture(speedDisplay, NULL, NULL, &w, &h);
+            speedDisplayRect = {160, 460, (float)w / h * 20, 20};
+        }
+        else if (playMode == PlayMode::DUAL)
+        {
+            int w, h;
+            SDL_QueryTexture(speedDisplay, NULL, NULL, &w, &h);
+            speedDisplayRect = {320, 460, (float)w / h * 20, 20};
+        }
+        break;
+    case SDLK_DOWN:
+        speed = std::max(speed - 1, 4);
+        SDL_DestroyTexture(speedDisplay);
+        speedDisplay = font::renderText(app->renderer, std::to_string(speed / 4) + "." + std::to_string(speed * 10 / 4 % 10) + std::to_string(speed * 100 / 4 % 10));
+        if (playMode == PlayMode::SINGLE)
+        {
+            int w, h;
+            SDL_QueryTexture(speedDisplay, NULL, NULL, &w, &h);
+            speedDisplayRect = {160, 460, (float)w / h * 20, 20};
+        }
+        else if (playMode == PlayMode::DUAL)
+        {
+            int w, h;
+            SDL_QueryTexture(speedDisplay, NULL, NULL, &w, &h);
+            speedDisplayRect = {320, 460, (float)w / h * 20, 20};
+        }
+        break;
     }
 }
 
@@ -805,6 +856,7 @@ void PlayScene::keyup(int player, int line)
 
 void PlayScene::judge(JudgeType j)
 {
+    judgeType = j;
     judgeTime = ((float)SDL_GetTicks() - (float)timer) * 0.001f + 1.0f;
     if (judgeDisplay)
     {

@@ -18,10 +18,21 @@ namespace rl
         } playMode;
         bool automatic;
         Uint32 timer;
-        float speed;
+        int speed;
+        SDL_Texture *speedDisplay;
+        SDL_FRect speedDisplayRect;
         SDL_Texture *bpmDisplay;
         SDL_FRect bpmDisplayRect;
         float judgeTime;
+        enum class JudgeType
+        {
+            JUST,
+            GREAT,
+            GOOD,
+            BAD,
+            POOR,
+            GPOOR
+        } judgeType;
         SDL_Texture *judgeDisplay;
         SDL_FRect judgeDisplayRect[2];
         size_t sectorIdx;
@@ -40,15 +51,6 @@ namespace rl
         void keydown(int player, int line);
         void keyup(int player, int line);
 
-        enum class JudgeType
-        {
-            JUST,
-            GREAT,
-            GOOD,
-            BAD,
-            POOR,
-            GPOOR
-        };
         void judge(JudgeType j);
 
     public:

@@ -9,16 +9,12 @@ find_package(SDL2_image REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 
-find_file(VLC_INCLUDE_DIR "vlc/vlc.h")
-find_library(VLC_LIBRARY vlc)
-
 add_subdirectory(bmsparser)
 
-set(CXX_SOURCES "src/main.cpp" "src/file.cpp" "src/font.cpp" "src/audio.cpp" "src/image.cpp" "src/video.cpp" "src/bga.cpp" "src/App.cpp" "src/TitleScene.cpp" "src/ListScene.cpp" "src/PlayScene.cpp")
-set(CXX_HEADERS "src/file.hpp" "src/font.hpp" "src/audio.hpp" "src/image.hpp" "src/video.hpp" "src/bga.hpp" "src/App.hpp" "src/Scene.hpp" "src/TitleScene.hpp" "src/ListScene.hpp" "src/PlayScene.hpp")
+set(CXX_SOURCES "src/main.cpp" "src/file.cpp" "src/font.cpp" "src/audio.cpp" "src/image.cpp" "src/bga.cpp" "src/App.cpp" "src/TitleScene.cpp" "src/ListScene.cpp" "src/PlayScene.cpp")
+set(CXX_HEADERS "src/file.hpp" "src/font.hpp" "src/audio.hpp" "src/image.hpp" "src/bga.hpp" "src/App.hpp" "src/Scene.hpp" "src/TitleScene.hpp" "src/ListScene.hpp" "src/PlayScene.hpp")
 
 add_executable(raven-lune ${CXX_SOURCES} ${CXX_HEADERS})
 
 target_compile_features(raven-lune PRIVATE cxx_std_17)
-target_include_directories(raven-lune PRIVATE ${VLC_INCLUDE_DIR})
-target_link_libraries(raven-lune bmsparser SDL2::Main SDL2::Image SDL2::Mixer SDL2::TTF ${VLC_LIBRARY})
+target_link_libraries(raven-lune bmsparser SDL2::Main SDL2::Image SDL2::Mixer SDL2::TTF)
