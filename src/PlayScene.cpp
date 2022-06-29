@@ -48,13 +48,14 @@ void PlayScene::initialise()
     noteCnt = std::count_if(chart->objs.begin(), chart->objs.end(), [](const bms::Obj &a)
                             { return a.type == bms::Obj::Type::NOTE && !a.note.end; });
 
-    timer = SDL_GetTicks();
+    timer = SDL_GetTicks() + 5000;
 
     speed = 1;
 
     combo = 0;
     gauge = 20.0f;
 
+    judgeTime = std::numeric_limits<float>().min();
     judgeDisplay = NULL;
 
     sectorIdx = 0;
@@ -89,7 +90,7 @@ void PlayScene::initialise()
 
 void PlayScene::draw()
 {
-    float currentTime = (SDL_GetTicks() - timer) * 0.001f;
+    float currentTime = ((float)SDL_GetTicks() - (float)timer) * 0.001f;
     float currentFraction = chart->timeToFraction(currentTime);
 
     SDL_SetRenderDrawColor(app->renderer, 0x80, 0x80, 0xff, 0x80);
@@ -715,7 +716,7 @@ void PlayScene::keydown(int player, int line)
     pressed[std::make_pair(player, line)] = true;
     std::vector<bms::Obj>::iterator iter = std::find_if(chart->objs.begin(), chart->objs.end(), [player, line](const bms::Obj &a)
                                                         { return a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line && !a.note.end && !a.executed; });
-    float currentTime = (SDL_GetTicks() - timer) * 0.001f;
+    float currentTime = ((float)SDL_GetTicks() - (float)timer) * 0.001f;
     if (iter != chart->objs.end())
     {
         bms::Obj &note = *iter;
@@ -790,7 +791,7 @@ void PlayScene::keyup(int player, int line)
     pressed[std::make_pair(player, line)] = false;
     std::vector<bms::Obj>::iterator iter = std::find_if(chart->objs.begin(), chart->objs.end(), [&player, &line](const bms::Obj &a)
                                                         { return a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line && !a.executed; });
-    float currentTime = (SDL_GetTicks() - timer) * 0.001f;
+    float currentTime = ((float)SDL_GetTicks() - (float)timer) * 0.001f;
     if (iter != chart->objs.end() && iter->note.end)
     {
         bms::Obj &note = *iter;
@@ -804,7 +805,7 @@ void PlayScene::keyup(int player, int line)
 
 void PlayScene::judge(JudgeType j)
 {
-    judgeTime = (SDL_GetTicks() - timer) * 0.001f + 1.0f;
+    judgeTime = ((float)SDL_GetTicks() - (float)timer) * 0.001f + 1.0f;
     if (judgeDisplay)
     {
         SDL_DestroyTexture(judgeDisplay);
