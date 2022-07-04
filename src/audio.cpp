@@ -60,6 +60,18 @@ void audio::playAudio(int index)
     }
 }
 
+void audio::stopAudio(int index)
+{
+    if (audios[index])
+    {
+        if (channelMap.find(index) != channelMap.end() && Mix_Playing(channelMap[index]))
+        {
+            Mix_HaltChannel(channelMap[index]);
+            channelMap.erase(index);
+        }
+    }
+}
+
 bool audio::isPlayingAudio()
 {
     return Mix_Playing(-1) > 0;

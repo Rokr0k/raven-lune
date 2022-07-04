@@ -96,7 +96,7 @@ void PlayScene::initialise()
     {
         for (int line = 1; line <= 9; line++)
         {
-            pressed[std::make_pair(player, line)] = false;
+            pressed[{player, line}] = false;
         }
     }
 
@@ -127,84 +127,84 @@ void PlayScene::draw()
     float currentFraction = chart->timeToFraction(currentTime);
 
     SDL_SetRenderDrawColor(app->renderer, 0x80, 0x80, 0xff, 0x80);
-    if (pressed[std::make_pair(1, 6)])
+    if (pressed[{1, 6}])
     {
         SDL_FRect rect = {0, 0, 30, 480};
         SDL_RenderFillRectF(app->renderer, &rect);
     }
-    if (pressed[std::make_pair(1, 1)])
+    if (pressed[{1, 1}])
     {
         SDL_FRect rect = {30, 0, 20, 480};
         SDL_RenderFillRectF(app->renderer, &rect);
     }
-    if (pressed[std::make_pair(1, 2)])
+    if (pressed[{1, 2}])
     {
         SDL_FRect rect = {50, 0, 15, 480};
         SDL_RenderFillRectF(app->renderer, &rect);
     }
-    if (pressed[std::make_pair(1, 3)])
+    if (pressed[{1, 3}])
     {
         SDL_FRect rect = {65, 0, 20, 480};
         SDL_RenderFillRectF(app->renderer, &rect);
     }
-    if (pressed[std::make_pair(1, 4)])
+    if (pressed[{1, 4}])
     {
         SDL_FRect rect = {85, 0, 15, 480};
         SDL_RenderFillRectF(app->renderer, &rect);
     }
-    if (pressed[std::make_pair(1, 5)])
+    if (pressed[{1, 5}])
     {
         SDL_FRect rect = {100, 0, 20, 480};
         SDL_RenderFillRectF(app->renderer, &rect);
     }
-    if (pressed[std::make_pair(1, 8)])
+    if (pressed[{1, 8}])
     {
         SDL_FRect rect = {120, 0, 15, 480};
         SDL_RenderFillRectF(app->renderer, &rect);
     }
-    if (pressed[std::make_pair(1, 9)])
+    if (pressed[{1, 9}])
     {
         SDL_FRect rect = {135, 0, 20, 480};
         SDL_RenderFillRectF(app->renderer, &rect);
     }
     if (playMode == PlayMode::DUAL)
     {
-        if (pressed[std::make_pair(2, 1)])
+        if (pressed[{2, 1}])
         {
             SDL_FRect rect = {160, 0, 20, 480};
             SDL_RenderFillRectF(app->renderer, &rect);
         }
-        if (pressed[std::make_pair(2, 2)])
+        if (pressed[{2, 2}])
         {
             SDL_FRect rect = {180, 0, 15, 480};
             SDL_RenderFillRectF(app->renderer, &rect);
         }
-        if (pressed[std::make_pair(2, 3)])
+        if (pressed[{2, 3}])
         {
             SDL_FRect rect = {195, 0, 20, 480};
             SDL_RenderFillRectF(app->renderer, &rect);
         }
-        if (pressed[std::make_pair(2, 4)])
+        if (pressed[{2, 4}])
         {
             SDL_FRect rect = {215, 0, 15, 480};
             SDL_RenderFillRectF(app->renderer, &rect);
         }
-        if (pressed[std::make_pair(2, 5)])
+        if (pressed[{2, 5}])
         {
             SDL_FRect rect = {230, 0, 20, 480};
             SDL_RenderFillRectF(app->renderer, &rect);
         }
-        if (pressed[std::make_pair(2, 8)])
+        if (pressed[{2, 8}])
         {
             SDL_FRect rect = {250, 0, 15, 480};
             SDL_RenderFillRectF(app->renderer, &rect);
         }
-        if (pressed[std::make_pair(2, 9)])
+        if (pressed[{2, 9}])
         {
             SDL_FRect rect = {265, 0, 20, 480};
             SDL_RenderFillRectF(app->renderer, &rect);
         }
-        if (pressed[std::make_pair(2, 6)])
+        if (pressed[{2, 6}])
         {
             SDL_FRect rect = {285, 0, 30, 480};
             SDL_RenderFillRectF(app->renderer, &rect);
@@ -486,7 +486,7 @@ void PlayScene::draw()
                         {
                             a = std::min(a, (iter->time - obj.time) / 2.0f);
                         }
-                        keyupList.push_back(std::make_pair(currentTime + a, std::make_pair(obj.note.player, obj.note.line)));
+                        keyupList.push_back({currentTime + a, {obj.note.player, obj.note.line}});
                     }
                 }
                 else
@@ -802,7 +802,7 @@ void PlayScene::onkeyup(SDL_KeyboardEvent key)
 
 void PlayScene::keydown(int player, int line)
 {
-    pressed[std::make_pair(player, line)] = true;
+    pressed[{player, line}] = true;
     std::vector<bms::Obj>::iterator iter = std::find_if(chart->objs.begin(), chart->objs.end(), [player, line](const bms::Obj &a)
                                                         { return a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line && !a.note.end && !a.executed; });
     float currentTime = ((float)SDL_GetTicks() - (float)timer) * 0.001f;
@@ -877,7 +877,7 @@ void PlayScene::keydown(int player, int line)
 
 void PlayScene::keyup(int player, int line)
 {
-    pressed[std::make_pair(player, line)] = false;
+    pressed[{player, line}] = false;
     std::vector<bms::Obj>::iterator iter = std::find_if(chart->objs.begin(), chart->objs.end(), [&player, &line](const bms::Obj &a)
                                                         { return a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line && !a.executed; });
     float currentTime = ((float)SDL_GetTicks() - (float)timer) * 0.001f;
@@ -887,6 +887,10 @@ void PlayScene::keyup(int player, int line)
         if (note.time - currentTime > judgeLine[chart->rank][2])
         {
             judge(JudgeType::POOR);
+            std::vector<bms::Obj>::reverse_iterator start = std::find_if(chart->objs.rbegin(), chart->objs.rend(), [&note](const bms::Obj &a)
+                                                                         { return a.type == bms::Obj::Type::NOTE && a.note.player == note.note.player && a.note.line == note.note.line && a.time < note.time; });
+            if (start != chart->objs.rend())
+                audio::stopAudio(start->note.key);
         }
         note.executed = true;
     }
