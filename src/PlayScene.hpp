@@ -33,8 +33,11 @@ namespace rl
             POOR,
             GPOOR
         } judgeType;
+        int combo;
         SDL_Texture *judgeDisplay;
         SDL_FRect judgeDisplayRect[2];
+        float gauge;
+        SDL_FRect gaugeDisplayRect[2];
         size_t sectorIdx;
         std::map<std::pair<int, int>, bool> pressed;
 
@@ -45,8 +48,8 @@ namespace rl
 
         size_t noteCnt;
 
-        int combo;
-        float gauge;
+        SDL_Texture *autoplayDisplay;
+        SDL_FRect autoplayDisplayRect;
 
         void keydown(int player, int line);
         void keyup(int player, int line);

@@ -99,6 +99,26 @@ void PlayScene::initialise()
             pressed[std::make_pair(player, line)] = false;
         }
     }
+
+    if (playMode == PlayMode::SINGLE)
+    {
+        gaugeDisplayRect[0] = {165, 430 - 380 * std::min(gauge, 80.0f) * 0.01f, 10, 380 * std::min(gauge, 80.0f) * 0.01f};
+        gaugeDisplayRect[1] = {165, 126 - 380 * (std::max(gauge, 80.0f) - 80.0f) * 0.01f, 10, 380 * (std::max(gauge, 80.0f) - 80.0f) * 0.01f};
+    }
+    else if (playMode == PlayMode::DUAL)
+    {
+        gaugeDisplayRect[0] = {325, 430 - 380 * std::min(gauge, 80.0f) * 0.01f, 10, 380 * std::min(gauge, 80.0f) * 0.01f};
+        gaugeDisplayRect[1] = {325, 126 - 380 * (std::max(gauge, 80.0f) - 80.0f) * 0.01f, 10, 380 * (std::max(gauge, 80.0f) - 80.0f) * 0.01f};
+    }
+
+    autoplayDisplay = NULL;
+    if (automatic)
+    {
+        int w, h;
+        autoplayDisplay = font::renderText(app->renderer, "autoplay");
+        SDL_QueryTexture(autoplayDisplay, NULL, NULL, &w, &h);
+        autoplayDisplayRect = {77.5f - (float)w / h * 10, 360, (float)w / h * 20, 20};
+    }
 }
 
 void PlayScene::draw()
@@ -461,7 +481,12 @@ void PlayScene::draw()
                                                                         { return a.type == bms::Obj::Type::NOTE && a.note.player == obj.note.player && a.note.line == obj.note.line && a.fraction > obj.fraction && !a.executed; });
                     if (iter == chart->objs.end() || !iter->note.end)
                     {
-                        keyupList.push_back(std::make_pair(currentTime + 0.1f, std::make_pair(obj.note.player, obj.note.line)));
+                        float a = 0.1f;
+                        if (iter != chart->objs.end())
+                        {
+                            a = std::min(a, (iter->time - obj.time) / 2.0f);
+                        }
+                        keyupList.push_back(std::make_pair(currentTime + a, std::make_pair(obj.note.player, obj.note.line)));
                     }
                 }
                 else
@@ -543,7 +568,7 @@ void PlayScene::draw()
             SDL_QueryTexture(bpmDisplay, NULL, NULL, &w, &h);
             bpmDisplayRect = {400 - (float)w / h * 10, 450, (float)w / h * 20, 20};
         }
-        if (playMode == PlayMode::DUAL)
+        else if (playMode == PlayMode::DUAL)
         {
             int w, h;
             SDL_QueryTexture(bpmDisplay, NULL, NULL, &w, &h);
@@ -564,6 +589,10 @@ void PlayScene::draw()
             judgeDisplay = NULL;
         }
     }
+    if (automatic)
+    {
+        SDL_RenderCopyF(app->renderer, autoplayDisplay, NULL, &autoplayDisplayRect);
+    }
 
     if (bgas[0] >= 0)
     {
@@ -583,6 +612,11 @@ void PlayScene::draw()
         SDL_RenderCopyF(app->renderer, bga, NULL, &bgaRect);
     }
 
+    SDL_SetRenderDrawColor(app->renderer, 0x33, 0xff, 0xff, 0xff);
+    SDL_RenderFillRectF(app->renderer, &gaugeDisplayRect[0]);
+    SDL_SetRenderDrawColor(app->renderer, 0xff, 0x33, 0x33, 0xff);
+    SDL_RenderFillRectF(app->renderer, &gaugeDisplayRect[1]);
+
     SDL_RenderCopyF(app->renderer, speedDisplay, NULL, &speedDisplayRect);
 
     if (empty && !audio::isPlayingAudio())
@@ -598,6 +632,10 @@ void PlayScene::release()
     if (judgeDisplay)
     {
         SDL_DestroyTexture(judgeDisplay);
+    }
+    if (autoplayDisplay)
+    {
+        SDL_DestroyTexture(autoplayDisplay);
     }
     delete chart;
     audio::releaseAudio();
@@ -666,7 +704,7 @@ void PlayScene::onkeydown(SDL_KeyboardEvent key)
     switch (key.keysym.sym)
     {
     case SDLK_UP:
-        speed = std::min(speed + 1, 16);
+        speed = std::min(speed + 1, 40);
         SDL_DestroyTexture(speedDisplay);
         speedDisplay = font::renderText(app->renderer, std::to_string(speed / 4) + "." + std::to_string(speed * 10 / 4 % 10) + std::to_string(speed * 100 / 4 % 10));
         if (playMode == PlayMode::SINGLE)
@@ -683,7 +721,7 @@ void PlayScene::onkeydown(SDL_KeyboardEvent key)
         }
         break;
     case SDLK_DOWN:
-        speed = std::max(speed - 1, 4);
+        speed = std::max(speed - 1, 1);
         SDL_DestroyTexture(speedDisplay);
         speedDisplay = font::renderText(app->renderer, std::to_string(speed / 4) + "." + std::to_string(speed * 10 / 4 % 10) + std::to_string(speed * 100 / 4 % 10));
         if (playMode == PlayMode::SINGLE)
@@ -906,5 +944,16 @@ void PlayScene::judge(JudgeType j)
     if (playMode == PlayMode::DUAL)
     {
         judgeDisplayRect[1] = {237.5f - (float)w / h * 20, 335, (float)w / h * 40, 40};
+    }
+
+    if (playMode == PlayMode::SINGLE)
+    {
+        gaugeDisplayRect[0] = {165, 430 - 380 * std::min(gauge, 80.0f) * 0.01f, 10, 380 * std::min(gauge, 80.0f) * 0.01f};
+        gaugeDisplayRect[1] = {165, 126 - 380 * (std::max(gauge, 80.0f) - 80.0f) * 0.01f, 10, 380 * (std::max(gauge, 80.0f) - 80.0f) * 0.01f};
+    }
+    else if (playMode == PlayMode::DUAL)
+    {
+        gaugeDisplayRect[0] = {325, 430 - 380 * std::min(gauge, 80.0f) * 0.01f, 10, 380 * std::min(gauge, 80.0f) * 0.01f};
+        gaugeDisplayRect[1] = {325, 126 - 380 * (std::max(gauge, 80.0f) - 80.0f) * 0.01f, 10, 380 * (std::max(gauge, 80.0f) - 80.0f) * 0.01f};
     }
 }
