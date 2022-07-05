@@ -1,24 +1,23 @@
 #include "ListScene.hpp"
+#include "TitleScene.hpp"
+#include "KeysScene.hpp"
 #include "PlayScene.hpp"
 #include "image.hpp"
 #include "font.hpp"
 #include "file.hpp"
-#include <SDL_image.h>
+#include "keys.hpp"
 
 using namespace rl;
 
 void ListScene::initialise()
 {
     int w, h;
-    loaded = file::loading.wait_for(std::chrono::nanoseconds(1)) == std::future_status::ready;
+    file::initialise();
+    loaded = false;
     selected = false;
     loading = font::renderText(app->renderer, "Loading...");
     SDL_QueryTexture(loading, NULL, NULL, &w, &h);
     loadingRect = {0, 0, (float)w / h * 40, 40};
-    if (loaded)
-    {
-        onload();
-    }
 }
 
 void ListScene::draw()
@@ -56,21 +55,22 @@ void ListScene::draw()
 
 void ListScene::onkeydown(SDL_KeyboardEvent key)
 {
-    switch (key.keysym.sym)
+    if (key.keysym.sym == keys::getKey(keys::S_1))
     {
-    case SDLK_UP:
         if (loaded && !selected)
         {
             index = (index + infos.size() - 1) % infos.size();
         }
-        break;
-    case SDLK_DOWN:
+    }
+    else if (key.keysym.sym == keys::getKey(keys::S_2))
+    {
         if (loaded && !selected)
         {
             index = (index + 1) % infos.size();
         }
-        break;
-    case SDLK_RETURN:
+    }
+    else if (key.keysym.sym == keys::getKey(keys::S_3))
+    {
         if (loaded && !selected && index < infos.size())
         {
             selected = true;
@@ -78,9 +78,11 @@ void ListScene::onkeydown(SDL_KeyboardEvent key)
             timer = SDL_GetTicks() + 2000;
             chart = file::charts[index];
             file::charts.erase(file::charts.begin() + index);
+            file::release();
         }
-        break;
-    case SDLK_SPACE:
+    }
+    else if (key.keysym.sym == keys::getKey(keys::S_5))
+    {
         if (loaded && !selected && index < infos.size())
         {
             selected = true;
@@ -88,8 +90,16 @@ void ListScene::onkeydown(SDL_KeyboardEvent key)
             timer = SDL_GetTicks() + 2000;
             chart = file::charts[index];
             file::charts.erase(file::charts.begin() + index);
+            file::release();
         }
-        break;
+    }
+    else if (key.keysym.sym == keys::getKey(keys::S_8))
+    {
+        app->changeScene(new KeysScene(app));
+    }
+    else if (key.keysym.sym == keys::getKey(keys::S_9))
+    {
+        app->changeScene(new TitleScene(app));
     }
 }
 

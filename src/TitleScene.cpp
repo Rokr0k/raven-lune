@@ -29,6 +29,13 @@ void TitleScene::onkeydown(SDL_KeyboardEvent key)
     case SDLK_SPACE:
         app->changeScene(new ListScene(app));
         break;
+    /*case SDLK_ESCAPE:
+    {
+        SDL_Event event;
+        event.type = SDL_QUIT;
+        SDL_PushEvent(&event);
+    }
+    break;*/
     }
 }
 

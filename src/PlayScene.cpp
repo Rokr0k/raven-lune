@@ -5,6 +5,7 @@
 #include "audio.hpp"
 #include "image.hpp"
 #include "bga.hpp"
+#include "keys.hpp"
 #include <algorithm>
 #include <limits>
 
@@ -19,7 +20,6 @@ constexpr float judgeLine[][5] = {
 
 void PlayScene::initialise()
 {
-    file::release();
     for (int i = 0; i < 1296; i++)
     {
         if (!chart->wavs[i].empty())
@@ -639,7 +639,6 @@ void PlayScene::release()
     }
     delete chart;
     audio::releaseAudio();
-    file::initialise();
     bga::release();
 }
 
@@ -647,58 +646,107 @@ void PlayScene::onkeydown(SDL_KeyboardEvent key)
 {
     if (!key.repeat && !automatic)
     {
-        switch (key.keysym.sym)
+        if (playMode == PlayMode::SINGLE)
         {
-        case SDLK_LSHIFT:
-        case SDLK_LCTRL:
-            keydown(1, 6);
-            break;
-        case SDLK_z:
-            keydown(1, 1);
-            break;
-        case SDLK_s:
-            keydown(1, 2);
-            break;
-        case SDLK_x:
-            keydown(1, 3);
-            break;
-        case SDLK_d:
-            keydown(1, 4);
-            break;
-        case SDLK_c:
-            keydown(1, 5);
-            break;
-        case SDLK_f:
-            keydown(1, 8);
-            break;
-        case SDLK_v:
-            keydown(1, 9);
-            break;
-        case SDLK_RSHIFT:
-        case SDLK_RCTRL:
-            keydown(2, 6);
-            break;
-        case SDLK_m:
-            keydown(2, 1);
-            break;
-        case SDLK_k:
-            keydown(2, 2);
-            break;
-        case SDLK_COMMA:
-            keydown(2, 3);
-            break;
-        case SDLK_l:
-            keydown(2, 4);
-            break;
-        case SDLK_PERIOD:
-            keydown(2, 5);
-            break;
-        case SDLK_SEMICOLON:
-            keydown(2, 8);
-            break;
-        case SDLK_SLASH:
-            keydown(2, 9);
-            break;
+            if (key.keysym.sym == keys::getKey(keys::KeysType::S_SU) || key.keysym.sym == keys::getKey(keys::KeysType::S_SD))
+            {
+                keydown(1, 6);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::S_1))
+            {
+                keydown(1, 1);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::S_2))
+            {
+                keydown(1, 2);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::S_3))
+            {
+                keydown(1, 3);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::S_4))
+            {
+                keydown(1, 4);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::S_5))
+            {
+                keydown(1, 5);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::S_8))
+            {
+                keydown(1, 8);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::S_9))
+            {
+                keydown(1, 9);
+            }
+        }
+        else if (playMode == PlayMode::DUAL)
+        {
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D1_SU) || key.keysym.sym == keys::getKey(keys::KeysType::D1_SD))
+            {
+                keydown(1, 6);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D1_1))
+            {
+                keydown(1, 1);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D1_2))
+            {
+                keydown(1, 2);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D1_3))
+            {
+                keydown(1, 3);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D1_4))
+            {
+                keydown(1, 4);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D1_5))
+            {
+                keydown(1, 5);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D1_8))
+            {
+                keydown(1, 8);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D1_9))
+            {
+                keydown(1, 9);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D2_SU) || key.keysym.sym == keys::getKey(keys::KeysType::D2_SD))
+            {
+                keydown(2, 6);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D2_1))
+            {
+                keydown(2, 1);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D2_2))
+            {
+                keydown(2, 2);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D2_3))
+            {
+                keydown(2, 3);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D2_4))
+            {
+                keydown(2, 4);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D2_5))
+            {
+                keydown(2, 5);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D2_8))
+            {
+                keydown(2, 8);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D2_9))
+            {
+                keydown(2, 9);
+            }
         }
     }
     switch (key.keysym.sym)
@@ -737,6 +785,9 @@ void PlayScene::onkeydown(SDL_KeyboardEvent key)
             speedDisplayRect = {320, 460, (float)w / h * 20, 20};
         }
         break;
+    case SDLK_ESCAPE:
+        app->changeScene(new ListScene(app));
+        break;
     }
 }
 
@@ -744,58 +795,107 @@ void PlayScene::onkeyup(SDL_KeyboardEvent key)
 {
     if (!automatic)
     {
-        switch (key.keysym.sym)
+        if (playMode == PlayMode::SINGLE)
         {
-        case SDLK_LSHIFT:
-        case SDLK_LCTRL:
-            keyup(1, 6);
-            break;
-        case SDLK_z:
-            keyup(1, 1);
-            break;
-        case SDLK_s:
-            keyup(1, 2);
-            break;
-        case SDLK_x:
-            keyup(1, 3);
-            break;
-        case SDLK_d:
-            keyup(1, 4);
-            break;
-        case SDLK_c:
-            keyup(1, 5);
-            break;
-        case SDLK_f:
-            keyup(1, 8);
-            break;
-        case SDLK_v:
-            keyup(1, 9);
-            break;
-        case SDLK_RSHIFT:
-        case SDLK_RCTRL:
-            keyup(2, 6);
-            break;
-        case SDLK_m:
-            keyup(2, 1);
-            break;
-        case SDLK_k:
-            keyup(2, 2);
-            break;
-        case SDLK_COMMA:
-            keyup(2, 3);
-            break;
-        case SDLK_l:
-            keyup(2, 4);
-            break;
-        case SDLK_PERIOD:
-            keyup(2, 5);
-            break;
-        case SDLK_SEMICOLON:
-            keyup(2, 8);
-            break;
-        case SDLK_SLASH:
-            keyup(2, 9);
-            break;
+            if (key.keysym.sym == keys::getKey(keys::KeysType::S_SU) || key.keysym.sym == keys::getKey(keys::KeysType::S_SD))
+            {
+                keyup(1, 6);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::S_1))
+            {
+                keyup(1, 1);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::S_2))
+            {
+                keyup(1, 2);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::S_3))
+            {
+                keyup(1, 3);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::S_4))
+            {
+                keyup(1, 4);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::S_5))
+            {
+                keyup(1, 5);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::S_8))
+            {
+                keyup(1, 8);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::S_9))
+            {
+                keyup(1, 9);
+            }
+        }
+        else if (playMode == PlayMode::DUAL)
+        {
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D1_SU) || key.keysym.sym == keys::getKey(keys::KeysType::D1_SD))
+            {
+                keyup(1, 6);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D1_1))
+            {
+                keyup(1, 1);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D1_2))
+            {
+                keyup(1, 2);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D1_3))
+            {
+                keyup(1, 3);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D1_4))
+            {
+                keyup(1, 4);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D1_5))
+            {
+                keyup(1, 5);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D1_8))
+            {
+                keyup(1, 8);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D1_9))
+            {
+                keyup(1, 9);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D2_SU) || key.keysym.sym == keys::getKey(keys::KeysType::D2_SD))
+            {
+                keyup(2, 6);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D2_1))
+            {
+                keyup(2, 1);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D2_2))
+            {
+                keyup(2, 2);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D2_3))
+            {
+                keyup(2, 3);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D2_4))
+            {
+                keyup(2, 4);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D2_5))
+            {
+                keyup(2, 5);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D2_8))
+            {
+                keyup(2, 8);
+            }
+            if (key.keysym.sym == keys::getKey(keys::KeysType::D2_9))
+            {
+                keyup(2, 9);
+            }
         }
     }
 }

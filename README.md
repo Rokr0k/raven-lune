@@ -13,7 +13,8 @@ BMS Player powered by SDL.
 
 ## Commands
 
-Unix, *nix:
+Unix, \*nix:
+
 ```sh
 git clone https://github.com/Rokr0k/raven-lune.git
 cd raven-lune
@@ -35,21 +36,7 @@ make
 
 # Controls
 
-## Start Screen
-
-`Space`: Start
-
-## List Screen
-
-`Up`: Up
-
-`Down`: Down
-
-`Enter`: Play
-
-`Space`: Auto Play
-
-## Play Screen
+## Default Key Map
 
 <table>
    <tr>
@@ -95,8 +82,49 @@ make
    </tr>
 </table>
 
+## Start Screen
+
+`Space`: Start
+
+## List Screen
+
+<table>
+   <tr>
+      <td colspan="8">Player 1</td>
+   </tr>
+   <tr>
+      <td style="background: red;"></td>
+      <td style="background: white;"></td>
+      <td style="background: cyan;"></td>
+      <td style="background: white;"></td>
+      <td style="background: cyan;"></td>
+      <td style="background: white;"></td>
+      <td style="background: cyan;"></td>
+      <td style="background: white;"></td>
+   </tr>
+   <tr>
+      <td></td>
+      <td>List down</td>
+      <td>List up</td>
+      <td>Play</td>
+      <td></td>
+      <td>Auto play</td>
+      <td>Key Settings</td>
+      <td>Back to title</td>
+   </tr>
+</table>
+
+## Key Settings Screen
+
+`Up`, `Down`: Go around keys
+
+`Enter`: Set key (press another key to set)
+
+`Backspace`: Toggle between SP and DP
+
+`Escape`: Back to list
+
 # Todo
 
-- [ ] Key settings
-- [ ] Play video
-- [ ] Improve design
+- Play video
+- Improve design
