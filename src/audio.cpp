@@ -14,7 +14,7 @@ static std::string possibleFormats[] = {".wav", ".ogg", ".flac", ".mp3"};
 void audio::initialise()
 {
     Mix_Init(MIX_INIT_OGG | MIX_INIT_OPUS | MIX_INIT_FLAC | MIX_INIT_MP3);
-    Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 256);
+    Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 1024);
 }
 
 void audio::loadAudio(int index, const std::string &file)

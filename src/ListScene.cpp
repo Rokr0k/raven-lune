@@ -95,7 +95,10 @@ void ListScene::onkeydown(SDL_KeyboardEvent key)
     }
     else if (key.keysym.sym == keys::getKey(keys::S_8))
     {
-        app->changeScene(new KeysScene(app));
+        if (!selected)
+        {
+            app->changeScene(new KeysScene(app));
+        }
     }
     else if (key.keysym.sym == keys::getKey(keys::S_9))
     {
