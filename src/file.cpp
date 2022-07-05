@@ -33,6 +33,7 @@ void file::initialise()
                 }
             }
         }
+        list.close();
         for(const std::future<void> &task : tasks)
         {
             task.wait();
