@@ -15,6 +15,7 @@ App::App(Scene *initialScene)
     image::initialise();
     font::initialise("res/DotGothic16.ttf");
     audio::initialise();
+    file::initialise();
     keys::load();
     window = SDL_CreateWindow("Raven Lune", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, 0);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -35,6 +36,7 @@ App::~App()
     image::release();
     font::release();
     audio::release();
+    file::release();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();

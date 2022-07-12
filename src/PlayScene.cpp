@@ -22,43 +22,33 @@ void PlayScene::initialise()
 {
     for (int i = 0; i < 1296; i++)
     {
-        if (!chart->wavs[i].empty())
+        if (!chart.wavs[i].empty())
         {
-            audio::loadAudio(i, chart->wavs[i]);
+            audio::loadAudio(i, chart.wavs[i]);
         }
     }
     for (int i = 0; i < 1296; i++)
     {
-        if (!chart->bmps[i].empty())
+        if (!chart.bmps[i].empty())
         {
-            bga::load(app->renderer, i, chart->bmps[i]);
+            bga::load(app->renderer, i, chart.bmps[i]);
         }
     }
 
-    if (std::find_if(chart->objs.begin(), chart->objs.end(), [](const bms::Obj &a)
-                     { return a.type == bms::Obj::Type::NOTE && a.note.player == 2 || (a.type == bms::Obj::Type::BOMB || a.type == bms::Obj::Type::INVISIBLE) && a.misc.player == 2; }) == chart->objs.end())
-    {
-        playMode = PlayMode::SINGLE;
-    }
-    else
-    {
-        playMode = PlayMode::DUAL;
-    }
-
-    noteCnt = std::count_if(chart->objs.begin(), chart->objs.end(), [](const bms::Obj &a)
+    noteCnt = std::count_if(chart.objs.begin(), chart.objs.end(), [](const bms::Obj &a)
                             { return a.type == bms::Obj::Type::NOTE && !a.note.end; });
 
     timer = SDL_GetTicks() + 5000;
 
     speed = 4;
     speedDisplay = font::renderText(app->renderer, std::to_string(speed / 4) + "." + std::to_string(speed * 10 / 4 % 10) + std::to_string(speed * 100 / 4 % 10));
-    if (playMode == PlayMode::SINGLE)
+    if (chart.type == bms::Chart::Type::Single)
     {
         int w, h;
         SDL_QueryTexture(speedDisplay, NULL, NULL, &w, &h);
         speedDisplayRect = {160, 460, (float)w / h * 20, 20};
     }
-    else if (playMode == PlayMode::DUAL)
+    else if (chart.type == bms::Chart::Type::Dual)
     {
         int w, h;
         SDL_QueryTexture(speedDisplay, NULL, NULL, &w, &h);
@@ -76,16 +66,16 @@ void PlayScene::initialise()
     bgas[0] = -1;
     bgas[1] = -1;
     bgas[2] = 0;
-    bgaRect = {(640 - (playMode == PlayMode::SINGLE ? 155 : 315) - 256) * 0.5f + (playMode == PlayMode::SINGLE ? 155 : 315), (480 - 256) * 0.5f, 256, 256};
+    bgaRect = {(640 - (chart.type == bms::Chart::Type::Single ? 155 : 315) - 256) * 0.5f + (chart.type == bms::Chart::Type::Single ? 155 : 315), (480 - 256) * 0.5f, 256, 256};
 
-    bpmDisplay = font::renderText(app->renderer, std::to_string((int)chart->sectors[sectorIdx].bpm).substr(0, 3));
-    if (playMode == PlayMode::SINGLE)
+    bpmDisplay = font::renderText(app->renderer, std::to_string((int)chart.sectors[sectorIdx].bpm).substr(0, 3));
+    if (chart.type == bms::Chart::Type::Single)
     {
         int w, h;
         SDL_QueryTexture(bpmDisplay, NULL, NULL, &w, &h);
         bpmDisplayRect = {400 - (float)w / h * 10, 450, (float)w / h * 20, 20};
     }
-    if (playMode == PlayMode::DUAL)
+    if (chart.type == bms::Chart::Type::Dual)
     {
         int w, h;
         SDL_QueryTexture(bpmDisplay, NULL, NULL, &w, &h);
@@ -100,12 +90,12 @@ void PlayScene::initialise()
         }
     }
 
-    if (playMode == PlayMode::SINGLE)
+    if (chart.type == bms::Chart::Type::Single)
     {
         gaugeDisplayRect[0] = {165, 430 - 380 * std::min(gauge, 80.0f) * 0.01f, 10, 380 * std::min(gauge, 80.0f) * 0.01f};
         gaugeDisplayRect[1] = {165, 126 - 380 * (std::max(gauge, 80.0f) - 80.0f) * 0.01f, 10, 380 * (std::max(gauge, 80.0f) - 80.0f) * 0.01f};
     }
-    else if (playMode == PlayMode::DUAL)
+    else if (chart.type == bms::Chart::Type::Dual)
     {
         gaugeDisplayRect[0] = {325, 430 - 380 * std::min(gauge, 80.0f) * 0.01f, 10, 380 * std::min(gauge, 80.0f) * 0.01f};
         gaugeDisplayRect[1] = {325, 126 - 380 * (std::max(gauge, 80.0f) - 80.0f) * 0.01f, 10, 380 * (std::max(gauge, 80.0f) - 80.0f) * 0.01f};
@@ -124,7 +114,7 @@ void PlayScene::initialise()
 void PlayScene::draw()
 {
     float currentTime = ((float)SDL_GetTicks() - (float)timer) * 0.001f;
-    float currentFraction = chart->timeToFraction(currentTime);
+    float currentFraction = chart.timeToFraction(currentTime);
 
     SDL_SetRenderDrawColor(app->renderer, 0x80, 0x80, 0xff, 0x80);
     if (pressed[{1, 6}])
@@ -167,7 +157,7 @@ void PlayScene::draw()
         SDL_FRect rect = {135, 0, 20, 480};
         SDL_RenderFillRectF(app->renderer, &rect);
     }
-    if (playMode == PlayMode::DUAL)
+    if (chart.type == bms::Chart::Type::Dual)
     {
         if (pressed[{2, 1}])
         {
@@ -222,7 +212,7 @@ void PlayScene::draw()
     SDL_RenderDrawLineF(app->renderer, 120, 0, 120, 480);
     SDL_RenderDrawLineF(app->renderer, 135, 0, 135, 480);
     SDL_RenderDrawLineF(app->renderer, 155, 0, 155, 480);
-    if (playMode == PlayMode::DUAL)
+    if (chart.type == bms::Chart::Type::Dual)
     {
         SDL_FRect partition = {155, 0, 5, 480};
         SDL_RenderFillRectF(app->renderer, &partition);
@@ -239,22 +229,22 @@ void PlayScene::draw()
 
     float signature = 0;
     SDL_RenderDrawLineF(app->renderer, 0, 480 * (1 - (signature - currentFraction) * speed * 0.25f), 155, 480 * (1 - (signature - currentFraction) * speed * 0.25f));
-    if (playMode == PlayMode::DUAL)
+    if (chart.type == bms::Chart::Type::Dual)
     {
         SDL_RenderDrawLineF(app->renderer, 160, 480 * (1 - (signature - currentFraction) * speed * 0.25f), 315, 480 * (1 - (signature - currentFraction) * speed * 0.25f));
     }
     for (int i = 0; i < 1000; i++)
     {
-        signature += chart->signatures[i];
+        signature += chart.signatures[i];
         SDL_RenderDrawLineF(app->renderer, 0, 480 * (1 - (signature - currentFraction) * speed * 0.25f), 155, 480 * (1 - (signature - currentFraction) * speed * 0.25f));
-        if (playMode == PlayMode::DUAL)
+        if (chart.type == bms::Chart::Type::Dual)
         {
             SDL_RenderDrawLineF(app->renderer, 160, 480 * (1 - (signature - currentFraction) * speed * 0.25f), 315, 480 * (1 - (signature - currentFraction) * speed * 0.25f));
         }
     }
 
     bool empty = true;
-    for (bms::Obj &obj : chart->objs)
+    for (bms::Obj &obj : chart.objs)
     {
         if (obj.executed)
         {
@@ -264,7 +254,7 @@ void PlayScene::draw()
 
         if (obj.type == bms::Obj::Type::NOTE)
         {
-            float fraction = chart->resolveSignatures(obj.fraction);
+            float fraction = chart.resolveSignatures(obj.fraction);
             float fractionDiff = fraction - currentFraction;
             SDL_Rect srcRect;
             SDL_FRect dstRect;
@@ -366,9 +356,9 @@ void PlayScene::draw()
             if (obj.note.end)
             {
                 const bms::Obj &note = obj;
-                const bms::Obj &unt = *std::find_if(chart->objs.rbegin(), chart->objs.rend(), [&note](const bms::Obj &a)
+                const bms::Obj &unt = *std::find_if(chart.objs.rbegin(), chart.objs.rend(), [&note](const bms::Obj &a)
                                                     { return a.type == bms::Obj::Type::NOTE && a.note.player == note.note.player && a.note.line == note.note.line && a.fraction < note.fraction; });
-                dstRect.h = (fraction - chart->resolveSignatures(unt.fraction)) * speed * 0.25f * 480;
+                dstRect.h = (fraction - chart.resolveSignatures(unt.fraction)) * speed * 0.25f * 480;
                 dstRect.x += 5;
                 dstRect.w -= 10;
             }
@@ -376,7 +366,7 @@ void PlayScene::draw()
         }
         else if (obj.type == bms::Obj::Type::BOMB)
         {
-            float fractionDiff = chart->resolveSignatures(obj.fraction) - currentFraction;
+            float fractionDiff = chart.resolveSignatures(obj.fraction) - currentFraction;
             SDL_FRect dstRect;
             dstRect.y = 480 * (1 - fractionDiff * speed * 0.25f) - 5;
             dstRect.h = 5;
@@ -477,12 +467,12 @@ void PlayScene::draw()
                 if (!obj.note.end)
                 {
                     keydown(obj.note.player, obj.note.line);
-                    std::vector<bms::Obj>::iterator iter = std::find_if(chart->objs.begin(), chart->objs.end(), [&obj](const bms::Obj &a)
+                    std::vector<bms::Obj>::iterator iter = std::find_if(chart.objs.begin(), chart.objs.end(), [&obj](const bms::Obj &a)
                                                                         { return a.type == bms::Obj::Type::NOTE && a.note.player == obj.note.player && a.note.line == obj.note.line && a.fraction > obj.fraction && !a.executed; });
-                    if (iter == chart->objs.end() || !iter->note.end)
+                    if (iter == chart.objs.end() || !iter->note.end)
                     {
                         float a = 0.1f;
-                        if (iter != chart->objs.end())
+                        if (iter != chart.objs.end())
                         {
                             a = std::min(a, (iter->time - obj.time) / 2.0f);
                         }
@@ -496,7 +486,7 @@ void PlayScene::draw()
             }
             if (!obj.note.end)
             {
-                if (currentTime - obj.time > judgeLine[chart->rank][3])
+                if (currentTime - obj.time > judgeLine[chart.rank][3])
                 {
                     judge(JudgeType::POOR);
                     obj.executed = true;
@@ -519,7 +509,7 @@ void PlayScene::draw()
             obj.executed = true;
             break;
         case bms::Obj::Type::BOMB:
-            if (currentTime - obj.time > judgeLine[chart->rank][2])
+            if (currentTime - obj.time > judgeLine[chart.rank][2])
             {
                 obj.executed = true;
             }
@@ -543,32 +533,32 @@ void PlayScene::draw()
     }
 
     size_t prevSectorIdx = sectorIdx;
-    while (sectorIdx + 1 < chart->sectors.size() && (chart->sectors[sectorIdx + 1].time < currentTime || chart->sectors[sectorIdx + 1].inclusive && chart->sectors[sectorIdx + 1].time == currentTime))
+    while (sectorIdx + 1 < chart.sectors.size() && (chart.sectors[sectorIdx + 1].time < currentTime || chart.sectors[sectorIdx + 1].inclusive && chart.sectors[sectorIdx + 1].time == currentTime))
     {
         sectorIdx++;
     }
     if (sectorIdx != prevSectorIdx)
     {
         SDL_DestroyTexture(bpmDisplay);
-        if (chart->sectors[sectorIdx].bpm > 0)
+        if (chart.sectors[sectorIdx].bpm > 0)
         {
-            bpmDisplay = font::renderText(app->renderer, std::to_string((int)chart->sectors[sectorIdx].bpm).substr(0, 3));
+            bpmDisplay = font::renderText(app->renderer, std::to_string((int)chart.sectors[sectorIdx].bpm).substr(0, 3));
         }
         else if (sectorIdx > 0)
         {
-            bpmDisplay = font::renderText(app->renderer, std::to_string((int)chart->sectors[sectorIdx - 1].bpm).substr(0, 3));
+            bpmDisplay = font::renderText(app->renderer, std::to_string((int)chart.sectors[sectorIdx - 1].bpm).substr(0, 3));
         }
         else
         {
             bpmDisplay = font::renderText(app->renderer, "0");
         }
-        if (playMode == PlayMode::SINGLE)
+        if (chart.type == bms::Chart::Type::Single)
         {
             int w, h;
             SDL_QueryTexture(bpmDisplay, NULL, NULL, &w, &h);
             bpmDisplayRect = {400 - (float)w / h * 10, 450, (float)w / h * 20, 20};
         }
-        else if (playMode == PlayMode::DUAL)
+        else if (chart.type == bms::Chart::Type::Dual)
         {
             int w, h;
             SDL_QueryTexture(bpmDisplay, NULL, NULL, &w, &h);
@@ -579,7 +569,7 @@ void PlayScene::draw()
     if (judgeDisplay)
     {
         SDL_RenderCopyF(app->renderer, judgeDisplay, NULL, &judgeDisplayRect[0]);
-        if (playMode == PlayMode::DUAL)
+        if (chart.type == bms::Chart::Type::Dual)
         {
             SDL_RenderCopyF(app->renderer, judgeDisplay, NULL, &judgeDisplayRect[1]);
         }
@@ -637,7 +627,6 @@ void PlayScene::release()
     {
         SDL_DestroyTexture(autoplayDisplay);
     }
-    delete chart;
     audio::releaseAudio();
     bga::release();
 }
@@ -646,7 +635,7 @@ void PlayScene::onkeydown(SDL_KeyboardEvent key)
 {
     if (!key.repeat && !automatic)
     {
-        if (playMode == PlayMode::SINGLE)
+        if (chart.type == bms::Chart::Type::Single)
         {
             if (key.keysym.sym == keys::getKey(keys::KeysType::S_SU) || key.keysym.sym == keys::getKey(keys::KeysType::S_SD))
             {
@@ -681,7 +670,7 @@ void PlayScene::onkeydown(SDL_KeyboardEvent key)
                 keydown(1, 9);
             }
         }
-        else if (playMode == PlayMode::DUAL)
+        else if (chart.type == bms::Chart::Type::Dual)
         {
             if (key.keysym.sym == keys::getKey(keys::KeysType::D1_SU) || key.keysym.sym == keys::getKey(keys::KeysType::D1_SD))
             {
@@ -755,13 +744,13 @@ void PlayScene::onkeydown(SDL_KeyboardEvent key)
         speed = std::min(speed + 1, 40);
         SDL_DestroyTexture(speedDisplay);
         speedDisplay = font::renderText(app->renderer, std::to_string(speed / 4) + "." + std::to_string(speed * 10 / 4 % 10) + std::to_string(speed * 100 / 4 % 10));
-        if (playMode == PlayMode::SINGLE)
+        if (chart.type == bms::Chart::Type::Single)
         {
             int w, h;
             SDL_QueryTexture(speedDisplay, NULL, NULL, &w, &h);
             speedDisplayRect = {160, 460, (float)w / h * 20, 20};
         }
-        else if (playMode == PlayMode::DUAL)
+        else if (chart.type == bms::Chart::Type::Dual)
         {
             int w, h;
             SDL_QueryTexture(speedDisplay, NULL, NULL, &w, &h);
@@ -772,13 +761,13 @@ void PlayScene::onkeydown(SDL_KeyboardEvent key)
         speed = std::max(speed - 1, 1);
         SDL_DestroyTexture(speedDisplay);
         speedDisplay = font::renderText(app->renderer, std::to_string(speed / 4) + "." + std::to_string(speed * 10 / 4 % 10) + std::to_string(speed * 100 / 4 % 10));
-        if (playMode == PlayMode::SINGLE)
+        if (chart.type == bms::Chart::Type::Single)
         {
             int w, h;
             SDL_QueryTexture(speedDisplay, NULL, NULL, &w, &h);
             speedDisplayRect = {160, 460, (float)w / h * 20, 20};
         }
-        else if (playMode == PlayMode::DUAL)
+        else if (chart.type == bms::Chart::Type::Dual)
         {
             int w, h;
             SDL_QueryTexture(speedDisplay, NULL, NULL, &w, &h);
@@ -795,7 +784,7 @@ void PlayScene::onkeyup(SDL_KeyboardEvent key)
 {
     if (!automatic)
     {
-        if (playMode == PlayMode::SINGLE)
+        if (chart.type == bms::Chart::Type::Single)
         {
             if (key.keysym.sym == keys::getKey(keys::KeysType::S_SU) || key.keysym.sym == keys::getKey(keys::KeysType::S_SD))
             {
@@ -830,7 +819,7 @@ void PlayScene::onkeyup(SDL_KeyboardEvent key)
                 keyup(1, 9);
             }
         }
-        else if (playMode == PlayMode::DUAL)
+        else if (chart.type == bms::Chart::Type::Dual)
         {
             if (key.keysym.sym == keys::getKey(keys::KeysType::D1_SU) || key.keysym.sym == keys::getKey(keys::KeysType::D1_SD))
             {
@@ -903,33 +892,33 @@ void PlayScene::onkeyup(SDL_KeyboardEvent key)
 void PlayScene::keydown(int player, int line)
 {
     pressed[{player, line}] = true;
-    std::vector<bms::Obj>::iterator iter = std::find_if(chart->objs.begin(), chart->objs.end(), [player, line](const bms::Obj &a)
+    std::vector<bms::Obj>::iterator iter = std::find_if(chart.objs.begin(), chart.objs.end(), [player, line](const bms::Obj &a)
                                                         { return a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line && !a.note.end && !a.executed; });
     float currentTime = ((float)SDL_GetTicks() - (float)timer) * 0.001f;
-    if (iter != chart->objs.end())
+    if (iter != chart.objs.end())
     {
         bms::Obj &note = *iter;
-        if (std::abs(note.time - currentTime) < judgeLine[chart->rank][0])
+        if (std::abs(note.time - currentTime) < judgeLine[chart.rank][0])
         {
             judge(JudgeType::JUST);
             note.executed = true;
         }
-        else if (std::abs(note.time - currentTime) < judgeLine[chart->rank][1])
+        else if (std::abs(note.time - currentTime) < judgeLine[chart.rank][1])
         {
             judge(JudgeType::GREAT);
             note.executed = true;
         }
-        else if (std::abs(note.time - currentTime) < judgeLine[chart->rank][2])
+        else if (std::abs(note.time - currentTime) < judgeLine[chart.rank][2])
         {
             judge(JudgeType::GOOD);
             note.executed = true;
         }
-        else if (std::abs(note.time - currentTime) < judgeLine[chart->rank][3])
+        else if (std::abs(note.time - currentTime) < judgeLine[chart.rank][3])
         {
             judge(JudgeType::BAD);
             note.executed = true;
         }
-        else if (std::abs(note.time - currentTime) < judgeLine[chart->rank][4])
+        else if (std::abs(note.time - currentTime) < judgeLine[chart.rank][4])
         {
             judge(JudgeType::GPOOR);
         }
@@ -939,12 +928,12 @@ void PlayScene::keydown(int player, int line)
         }
         else
         {
-            iter = std::find_if(chart->objs.begin(), chart->objs.end(), [player, line](const bms::Obj &a)
+            iter = std::find_if(chart.objs.begin(), chart.objs.end(), [player, line](const bms::Obj &a)
                                 { return a.type == bms::Obj::Type::BOMB && a.misc.player == player && a.misc.line == line && !a.executed; });
-            if (iter != chart->objs.end())
+            if (iter != chart.objs.end())
             {
                 bms::Obj &bomb = *iter;
-                if (std::abs(note.time - currentTime) < judgeLine[chart->rank][2])
+                if (std::abs(note.time - currentTime) < judgeLine[chart.rank][2])
                 {
                     bomb.executed = true;
                 }
@@ -956,9 +945,9 @@ void PlayScene::keydown(int player, int line)
             else
             {
             none:
-                std::vector<bms::Obj>::reverse_iterator riter = std::find_if(chart->objs.rbegin(), chart->objs.rend(), [player, line](const bms::Obj &a)
+                std::vector<bms::Obj>::reverse_iterator riter = std::find_if(chart.objs.rbegin(), chart.objs.rend(), [player, line](const bms::Obj &a)
                                                                              { return (a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line || a.type == bms::Obj::Type::INVISIBLE && a.misc.player == player && a.misc.line == line) && a.executed; });
-                if (riter != chart->objs.rend())
+                if (riter != chart.objs.rend())
                 {
                     switch (riter->type)
                     {
@@ -978,18 +967,18 @@ void PlayScene::keydown(int player, int line)
 void PlayScene::keyup(int player, int line)
 {
     pressed[{player, line}] = false;
-    std::vector<bms::Obj>::iterator iter = std::find_if(chart->objs.begin(), chart->objs.end(), [&player, &line](const bms::Obj &a)
+    std::vector<bms::Obj>::iterator iter = std::find_if(chart.objs.begin(), chart.objs.end(), [&player, &line](const bms::Obj &a)
                                                         { return a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line && !a.executed; });
     float currentTime = ((float)SDL_GetTicks() - (float)timer) * 0.001f;
-    if (iter != chart->objs.end() && iter->note.end)
+    if (iter != chart.objs.end() && iter->note.end)
     {
         bms::Obj &note = *iter;
-        if (note.time - currentTime > judgeLine[chart->rank][2])
+        if (note.time - currentTime > judgeLine[chart.rank][2])
         {
             judge(JudgeType::POOR);
-            std::vector<bms::Obj>::reverse_iterator start = std::find_if(chart->objs.rbegin(), chart->objs.rend(), [&note](const bms::Obj &a)
+            std::vector<bms::Obj>::reverse_iterator start = std::find_if(chart.objs.rbegin(), chart.objs.rend(), [&note](const bms::Obj &a)
                                                                          { return a.type == bms::Obj::Type::NOTE && a.note.player == note.note.player && a.note.line == note.note.line && a.time < note.time; });
-            if (start != chart->objs.rend())
+            if (start != chart.objs.rend())
                 audio::stopAudio(start->note.key);
         }
         note.executed = true;
@@ -1008,19 +997,19 @@ void PlayScene::judge(JudgeType j)
     {
     case JudgeType::JUST:
         combo++;
-        gauge = std::min(gauge + chart->total / noteCnt, 100.0f);
+        gauge = std::min(gauge + chart.total / noteCnt, 100.0f);
         judgeDisplay = font::renderText(app->renderer, "GREAT " + std::to_string(combo));
         SDL_SetTextureColorMod(judgeDisplay, 0xcc, 0xcc, 0xcc);
         break;
     case JudgeType::GREAT:
         combo++;
-        gauge = std::min(gauge + chart->total / noteCnt, 100.0f);
+        gauge = std::min(gauge + chart.total / noteCnt, 100.0f);
         judgeDisplay = font::renderText(app->renderer, "GREAT " + std::to_string(combo));
         SDL_SetTextureColorMod(judgeDisplay, 0xff, 0xd7, 0x00);
         break;
     case JudgeType::GOOD:
         combo++;
-        gauge = std::min(gauge + chart->total / noteCnt * 0.5f, 100.0f);
+        gauge = std::min(gauge + chart.total / noteCnt * 0.5f, 100.0f);
         judgeDisplay = font::renderText(app->renderer, "GOOD " + std::to_string(combo));
         SDL_SetTextureColorMod(judgeDisplay, 0xad, 0xff, 0x2f);
         break;
@@ -1045,17 +1034,17 @@ void PlayScene::judge(JudgeType j)
     int w, h;
     SDL_QueryTexture(judgeDisplay, NULL, NULL, &w, &h);
     judgeDisplayRect[0] = {77.5f - (float)w / h * 20, 335, (float)w / h * 40, 40};
-    if (playMode == PlayMode::DUAL)
+    if (chart.type == bms::Chart::Type::Dual)
     {
         judgeDisplayRect[1] = {237.5f - (float)w / h * 20, 335, (float)w / h * 40, 40};
     }
 
-    if (playMode == PlayMode::SINGLE)
+    if (chart.type == bms::Chart::Type::Single)
     {
         gaugeDisplayRect[0] = {165, 430 - 380 * std::min(gauge, 80.0f) * 0.01f, 10, 380 * std::min(gauge, 80.0f) * 0.01f};
         gaugeDisplayRect[1] = {165, 126 - 380 * (std::max(gauge, 80.0f) - 80.0f) * 0.01f, 10, 380 * (std::max(gauge, 80.0f) - 80.0f) * 0.01f};
     }
-    else if (playMode == PlayMode::DUAL)
+    else if (chart.type == bms::Chart::Type::Dual)
     {
         gaugeDisplayRect[0] = {325, 430 - 380 * std::min(gauge, 80.0f) * 0.01f, 10, 380 * std::min(gauge, 80.0f) * 0.01f};
         gaugeDisplayRect[1] = {325, 126 - 380 * (std::max(gauge, 80.0f) - 80.0f) * 0.01f, 10, 380 * (std::max(gauge, 80.0f) - 80.0f) * 0.01f};

@@ -41,44 +41,30 @@ make
 <table>
    <tr>
       <td colspan="8">Player 1</td>
-      <td rowspan="8"></td>
+      <td rowspan="3"></td>
       <td colspan="8">Player 2</td>
    </tr>
    <tr>
-      <td style="background: red;"></td>
-      <td style="background: white;"></td>
-      <td style="background: cyan;"></td>
-      <td style="background: white;"></td>
-      <td style="background: cyan;"></td>
-      <td style="background: white;"></td>
-      <td style="background: cyan;"></td>
-      <td style="background: white;"></td>
-      <td style="background: white;"></td>
-      <td style="background: cyan;"></td>
-      <td style="background: white;"></td>
-      <td style="background: cyan;"></td>
-      <td style="background: white;"></td>
-      <td style="background: cyan;"></td>
-      <td style="background: white;"></td>
-      <td style="background: red;"></td>
+      <td>LShift</td>
+      <td rowspan="2">Z</td>
+      <td rowspan="2">S</td>
+      <td rowspan="2">X</td>
+      <td rowspan="2">D</td>
+      <td rowspan="2">C</td>
+      <td rowspan="2">F</td>
+      <td rowspan="2">V</td>
+      <td rowspan="2">M</td>
+      <td rowspan="2">K</td>
+      <td rowspan="2">,</td>
+      <td rowspan="2">L</td>
+      <td rowspan="2">.</td>
+      <td rowspan="2">;</td>
+      <td rowspan="2">/</td>
+      <td>RShift</td>
    </tr>
    <tr>
-      <td>LShift, LCtrl</td>
-      <td>Z</td>
-      <td>S</td>
-      <td>X</td>
-      <td>D</td>
-      <td>C</td>
-      <td>F</td>
-      <td>V</td>
-      <td>M</td>
-      <td>K</td>
-      <td>,</td>
-      <td>L</td>
-      <td>.</td>
-      <td>;</td>
-      <td>/</td>
-      <td>RShift, RCtrl</td>
+      <td>LCtrl</td>
+      <td>RCtrl</td>
    </tr>
 </table>
 
@@ -93,21 +79,11 @@ make
       <td colspan="8">Player 1</td>
    </tr>
    <tr>
-      <td style="background: red;"></td>
-      <td style="background: white;"></td>
-      <td style="background: cyan;"></td>
-      <td style="background: white;"></td>
-      <td style="background: cyan;"></td>
-      <td style="background: white;"></td>
-      <td style="background: cyan;"></td>
-      <td style="background: white;"></td>
-   </tr>
-   <tr>
-      <td></td>
+      <td>None</td>
       <td>List down</td>
       <td>List up</td>
       <td>Play</td>
-      <td></td>
+      <td>Refresh</td>
       <td>Auto play</td>
       <td>Key Settings</td>
       <td>Back to title</td>

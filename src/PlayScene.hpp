@@ -10,12 +10,7 @@ namespace rl
     class PlayScene : public Scene
     {
     private:
-        bms::Chart *chart;
-        enum class PlayMode
-        {
-            SINGLE,
-            DUAL
-        } playMode;
+        bms::Chart chart;
         bool automatic;
         Uint32 timer;
         int speed;
@@ -57,7 +52,7 @@ namespace rl
         void judge(JudgeType j);
 
     public:
-        PlayScene(App *app, bms::Chart *chart, bool automatic = false) : Scene(app), chart(chart), automatic(automatic) {}
+        PlayScene(App *app, bms::Chart chart, bool automatic = false) : Scene(app), chart(chart), automatic(automatic) {}
         void initialise();
         void draw();
         void release();

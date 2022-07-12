@@ -6,13 +6,13 @@
 #include "font.hpp"
 #include "file.hpp"
 #include "keys.hpp"
+#include <bmsparser/convert.hpp>
 
 using namespace rl;
 
 void ListScene::initialise()
 {
     int w, h;
-    file::initialise();
     loaded = false;
     selected = false;
     loading = font::renderText(app->renderer, "Loading...");
@@ -48,7 +48,7 @@ void ListScene::draw()
         SDL_RenderCopyF(app->renderer, infos[index].stagefile, NULL, &infos[index].stagefileRect);
         if (timer < SDL_GetTicks())
         {
-            app->changeScene(new PlayScene(app, chart, autoSelected));
+            app->changeScene(new PlayScene(app, *chart, autoSelected));
         }
     }
 }
@@ -77,8 +77,15 @@ void ListScene::onkeydown(SDL_KeyboardEvent key)
             autoSelected = false;
             timer = SDL_GetTicks() + 2000;
             chart = file::charts[index];
-            file::charts.erase(file::charts.begin() + index);
+        }
+    }
+    else if (key.keysym.sym == keys::getKey(keys::S_4))
+    {
+        if (loaded && !selected)
+        {
+            loaded = false;
             file::release();
+            file::initialise();
         }
     }
     else if (key.keysym.sym == keys::getKey(keys::S_5))
@@ -89,8 +96,6 @@ void ListScene::onkeydown(SDL_KeyboardEvent key)
             autoSelected = true;
             timer = SDL_GetTicks() + 2000;
             chart = file::charts[index];
-            file::charts.erase(file::charts.begin() + index);
-            file::release();
         }
     }
     else if (key.keysym.sym == keys::getKey(keys::S_8))
@@ -128,16 +133,16 @@ void ListScene::onload()
     {
         info_t info = {};
         int w, h;
-        info.genre = font::renderText(app->renderer, chart->genre);
+        info.genre = font::renderText(app->renderer, bms::sjis_to_utf8(chart->genre));
         SDL_QueryTexture(info.genre, NULL, NULL, &w, &h);
         info.genreRect = {20, 20, std::min((float)w / h * 40, 600.0f), 40};
-        info.title = font::renderText(app->renderer, chart->title);
+        info.title = font::renderText(app->renderer, bms::sjis_to_utf8(chart->title));
         SDL_QueryTexture(info.title, NULL, NULL, &w, &h);
         info.titleRect = {20, 60, std::min((float)w / h * 60, 600.0f), 60};
-        info.subtitle = font::renderText(app->renderer, chart->subtitle);
+        info.subtitle = font::renderText(app->renderer, bms::sjis_to_utf8(chart->subtitle));
         SDL_QueryTexture(info.subtitle, NULL, NULL, &w, &h);
         info.subtitleRect = {20, 120, std::min((float)w / h * 40, 600.0f), 40};
-        info.artist = font::renderText(app->renderer, chart->artist);
+        info.artist = font::renderText(app->renderer, bms::sjis_to_utf8(chart->artist));
         SDL_QueryTexture(info.artist, NULL, NULL, &w, &h);
         info.artistRect = {20, 160, std::min((float)w / h * 40, 600.0f), 40};
         info.level = font::renderText(app->renderer, std::to_string(chart->playLevel));
