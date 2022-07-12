@@ -2,7 +2,6 @@
 #include <filesystem>
 #include <fstream>
 #include <regex>
-#include <iostream>
 
 using namespace rl;
 
@@ -27,7 +26,11 @@ void file::initialise()
                     if (i.is_regular_file() && std::regex_match(i.path().extension().string(), fileRegex))
                     {
                         tasks.push_back(std::async(std::launch::async, [](const std::filesystem::directory_entry &i){
-                        file::charts.push_back(bms::parseBMS(i.path()));
+                            bms::Chart *chart = bms::parseBMS(i.path());
+                            if(chart)
+                            {
+                                file::charts.push_back(chart);
+                            }
                         }, i));
                     }
                 }
