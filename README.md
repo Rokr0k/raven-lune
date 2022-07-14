@@ -90,6 +90,24 @@ make
    </tr>
 </table>
 
+## Result Screen
+
+<table>
+   <tr>
+      <td colspan="8">Player 1</td>
+   </tr>
+   <tr>
+      <td>None</td>
+      <td>Return to list</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+   </tr>
+</table>
+
 ## Key Settings Screen
 
 `Up`, `Down`: Go around keys

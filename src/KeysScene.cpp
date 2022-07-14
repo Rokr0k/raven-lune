@@ -62,7 +62,7 @@ void KeysScene::draw()
         if (pressed[i])
         {
             a = {keyRects[i].x + 2, keyRects[i].y + 2, keyRects[i].w - 4, keyRects[i].h - 4};
-            SDL_SetRenderDrawColor(app->renderer, 0xff, 0xff, 0x00, 0xff);
+            SDL_SetRenderDrawColor(app->renderer, 0x80, 0x80, 0x80, 0xff);
             SDL_RenderDrawRectF(app->renderer, &a);
         }
     }

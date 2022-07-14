@@ -21,20 +21,25 @@ namespace rl
         float judgeTime;
         enum class JudgeType
         {
+            NONE,
             JUST,
             GREAT,
             GOOD,
             BAD,
             POOR,
-            GPOOR
+            GPOOR,
         } judgeType;
         int combo;
         SDL_Texture *judgeDisplay;
         SDL_FRect judgeDisplayRect[2];
+        int maxCombo;
         float gauge;
         SDL_FRect gaugeDisplayRect[2];
+        int judgeCount[5];
         size_t sectorIdx;
         std::map<std::pair<int, int>, bool> pressed;
+
+        std::map<std::pair<int, int>, JudgeType> suspendedJudge;
 
         std::vector<std::pair<float, std::pair<int, int>>> keyupList;
 

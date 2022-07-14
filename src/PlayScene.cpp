@@ -1,5 +1,6 @@
 #include "PlayScene.hpp"
 #include "ListScene.hpp"
+#include "ResultScene.hpp"
 #include "file.hpp"
 #include "font.hpp"
 #include "audio.hpp"
@@ -56,7 +57,9 @@ void PlayScene::initialise()
     }
 
     combo = 0;
+    maxCombo = 0;
     gauge = 20.0f;
+    judgeCount[0] = judgeCount[1] = judgeCount[2] = judgeCount[3] = judgeCount[4] = 0;
 
     judgeTime = std::numeric_limits<float>().min();
     judgeDisplay = NULL;
@@ -490,10 +493,20 @@ void PlayScene::draw()
                 {
                     judge(JudgeType::POOR);
                     obj.executed = true;
+                    std::vector<bms::Obj>::iterator iter = std::find_if(chart.objs.begin(), chart.objs.end(), [&obj](const bms::Obj &a)
+                                                                        { return a.type == bms::Obj::Type::NOTE && a.note.player == obj.note.player && a.note.line == obj.note.line && a.fraction > obj.fraction && !a.executed; });
+                    if (iter != chart.objs.end() && iter->note.end)
+                    {
+                        iter->executed = true;
+                    }
                 }
             }
             else
             {
+                if (suspendedJudge.find({obj.note.player, obj.note.line}) != suspendedJudge.end() && suspendedJudge[{obj.note.player, obj.note.line}] != JudgeType::NONE)
+                {
+                    judge(suspendedJudge[{obj.note.player, obj.note.line}]);
+                }
                 obj.executed = true;
             }
             break;
@@ -611,7 +624,14 @@ void PlayScene::draw()
 
     if (empty && !audio::isPlayingAudio())
     {
-        app->changeScene(new ListScene(app));
+        if (automatic)
+        {
+            app->changeScene(new ListScene(app));
+        }
+        else
+        {
+            app->changeScene(new ResultScene(app, ResultScene::Result{gauge > 80, {judgeCount[0], judgeCount[1], judgeCount[2], judgeCount[3], judgeCount[4]}, maxCombo, noteCnt}));
+        }
     }
 }
 
@@ -898,29 +918,43 @@ void PlayScene::keydown(int player, int line)
     if (iter != chart.objs.end())
     {
         bms::Obj &note = *iter;
+        JudgeType j = JudgeType::NONE;
         if (std::abs(note.time - currentTime) < judgeLine[chart.rank][0])
         {
-            judge(JudgeType::JUST);
+            j = JudgeType::JUST;
             note.executed = true;
         }
         else if (std::abs(note.time - currentTime) < judgeLine[chart.rank][1])
         {
-            judge(JudgeType::GREAT);
+            j = JudgeType::GREAT;
             note.executed = true;
         }
         else if (std::abs(note.time - currentTime) < judgeLine[chart.rank][2])
         {
-            judge(JudgeType::GOOD);
+            j = JudgeType::GOOD;
             note.executed = true;
         }
         else if (std::abs(note.time - currentTime) < judgeLine[chart.rank][3])
         {
-            judge(JudgeType::BAD);
+            j = JudgeType::BAD;
             note.executed = true;
         }
         else if (std::abs(note.time - currentTime) < judgeLine[chart.rank][4])
         {
-            judge(JudgeType::GPOOR);
+            j = JudgeType::GPOOR;
+        }
+        if (j != JudgeType::NONE)
+        {
+            std::vector<bms::Obj>::iterator next = std::find_if(iter + 1, chart.objs.end(), [player, line](const bms::Obj &a)
+                                                                { return a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line && !a.executed; });
+            if (next != chart.objs.end() && next->note.end)
+            {
+                suspendedJudge[{player, line}] = j;
+            }
+            else
+            {
+                judge(j);
+            }
         }
         if (note.executed)
         {
@@ -981,6 +1015,10 @@ void PlayScene::keyup(int player, int line)
             if (start != chart.objs.rend())
                 audio::stopAudio(start->note.key);
         }
+        else if (suspendedJudge.find({note.note.player, note.note.line}) != suspendedJudge.end() && suspendedJudge[{note.note.player, note.note.line}] != JudgeType::NONE)
+        {
+            judge(suspendedJudge[{note.note.player, note.note.line}]);
+        }
         note.executed = true;
     }
 }
@@ -1000,37 +1038,44 @@ void PlayScene::judge(JudgeType j)
         gauge = std::min(gauge + chart.total / noteCnt, 100.0f);
         judgeDisplay = font::renderText(app->renderer, "GREAT " + std::to_string(combo));
         SDL_SetTextureColorMod(judgeDisplay, 0xcc, 0xcc, 0xcc);
+        judgeCount[0]++;
         break;
     case JudgeType::GREAT:
         combo++;
         gauge = std::min(gauge + chart.total / noteCnt, 100.0f);
         judgeDisplay = font::renderText(app->renderer, "GREAT " + std::to_string(combo));
         SDL_SetTextureColorMod(judgeDisplay, 0xff, 0xd7, 0x00);
+        judgeCount[1]++;
         break;
     case JudgeType::GOOD:
         combo++;
         gauge = std::min(gauge + chart.total / noteCnt * 0.5f, 100.0f);
         judgeDisplay = font::renderText(app->renderer, "GOOD " + std::to_string(combo));
         SDL_SetTextureColorMod(judgeDisplay, 0xad, 0xff, 0x2f);
+        judgeCount[2]++;
         break;
     case JudgeType::BAD:
         combo = 0;
         gauge = std::max(gauge - 4, 0.0f);
         judgeDisplay = font::renderText(app->renderer, "BAD");
         SDL_SetTextureColorMod(judgeDisplay, 0xee, 0x82, 0xee);
+        judgeCount[3]++;
         break;
     case JudgeType::POOR:
         combo = 0;
         gauge = std::max(gauge - 6, 0.0f);
         judgeDisplay = font::renderText(app->renderer, "POOR");
         SDL_SetTextureColorMod(judgeDisplay, 0xdc, 0x14, 0x3c);
+        judgeCount[4]++;
         break;
     case JudgeType::GPOOR:
         gauge = std::max(gauge - 2, 0.0f);
         judgeDisplay = font::renderText(app->renderer, "POOR");
         SDL_SetTextureColorMod(judgeDisplay, 0xdc, 0x14, 0x3c);
+        judgeCount[4]++;
         break;
     }
+    maxCombo = std::max(maxCombo, combo);
     int w, h;
     SDL_QueryTexture(judgeDisplay, NULL, NULL, &w, &h);
     judgeDisplayRect[0] = {77.5f - (float)w / h * 20, 335, (float)w / h * 40, 40};
