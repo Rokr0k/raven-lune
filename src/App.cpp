@@ -13,7 +13,7 @@ App::App(Scene *initialScene)
 {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS | SDL_INIT_TIMER);
     image::initialise();
-    font::initialise("res/DotGothic16.ttf");
+    font::initialise("res/fonts/DotGothic16.ttf");
     audio::initialise();
     file::initialise();
     keys::load();

@@ -8,7 +8,7 @@ static std::map<keys::KeysType, SDL_Keycode> keymap;
 
 void keys::load()
 {
-    std::ifstream input("res/keys.txt");
+    std::ifstream input("res/data/keys.txt");
     for (int i = 0; i < 27; i++)
     {
         input >> keymap[(keys::KeysType)i];
@@ -18,7 +18,7 @@ void keys::load()
 
 void keys::save()
 {
-    std::ofstream output("res/keys.txt");
+    std::ofstream output("res/data/keys.txt");
     for (int i = 0; i < 27; i++)
     {
         output << keymap[(keys::KeysType)i] << std::endl;
