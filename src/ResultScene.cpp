@@ -14,12 +14,14 @@ void ResultScene::initialise()
     maxCombo = font::renderText(app->renderer, "Max Combo: " + std::to_string(result.maxCombo));
     SDL_QueryTexture(maxCombo, NULL, NULL, &w, &h);
     maxComboRect = {50, 100, (float)w / h * 30, 30};
-    std::string judges[5] = {"JUST", "GREAT", "GOOD", "BAD", "POOR"};
+    std::string judges[5] = {"GREAT", "GREAT", "GOOD", "BAD", "POOR"};
+    SDL_Color judgeColors[5] = {{0xcc, 0xcc, 0xcc}, {0xff, 0xd7, 0x00}, {0xad, 0xff, 0x2f}, {0xee, 0x82, 0xee}, {0xdc, 0x14, 0x3c}};
     for (int i = 0; i < 5; i++)
     {
         judge[i] = font::renderText(app->renderer, judges[i] + ": " + std::to_string(result.judgeCount[i]));
         SDL_QueryTexture(judge[i], NULL, NULL, &w, &h);
         judgeRect[i] = {50, 140.0f + 30 * i, (float)w / h * 30, 30};
+        SDL_SetTextureColorMod(judge[i], judgeColors[i].r, judgeColors[i].g, judgeColors[i].b);
     }
     std::string ranks[9] = {"F", "E", "D", "C", "B", "A", "AA", "AAA", "S"};
     if (result.noteCount > 0)
