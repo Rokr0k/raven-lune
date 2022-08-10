@@ -3,7 +3,7 @@
 #include "Scene.hpp"
 #include <future>
 #include <vector>
-#include <bmsparser/bmsparser.hpp>
+#include <bmsparser.hpp>
 
 namespace rl
 {

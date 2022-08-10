@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Scene.hpp"
-#include <bmsparser/bmsparser.hpp>
+#include <bmsparser.hpp>
 #include <map>
 #include <chrono>
 

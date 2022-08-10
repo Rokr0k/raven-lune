@@ -27,9 +27,6 @@ void PlayScene::initialise()
         {
             audio::loadAudio(i, chart.wavs[i]);
         }
-    }
-    for (int i = 0; i < 1296; i++)
-    {
         if (!chart.bmps[i].empty())
         {
             bga::load(app->renderer, i, chart.bmps[i]);
@@ -152,6 +149,9 @@ void PlayScene::draw()
     }
     if (pressed[{1, 8}])
     {
+    for (int i = 0; i < 1296; i++)
+    {
+    }
         SDL_FRect rect = {120, 0, 15, 480};
         SDL_RenderFillRectF(app->renderer, &rect);
     }

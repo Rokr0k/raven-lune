@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <future>
-#include "bmsparser/bmsparser.hpp"
+#include <bmsparser.hpp>
 
 namespace rl
 {
