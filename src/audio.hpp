@@ -10,6 +10,7 @@ namespace rl
         void loadAudio(int index, const std::string &file);
         void playAudio(int index);
         void stopAudio(int index);
+        void freeMemoryAudio();
         bool isPlayingAudio();
         void releaseAudio();
         void playMusic(const std::string &file);

@@ -14,7 +14,7 @@ static std::string possibleFormats[] = {".wav", ".ogg", ".flac", ".mp3"};
 void audio::initialise()
 {
     Mix_Init(MIX_INIT_OGG | MIX_INIT_OPUS | MIX_INIT_FLAC | MIX_INIT_MP3);
-    Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 1024);
+    Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 512);
 }
 
 void audio::loadAudio(int index, const std::string &file)
@@ -43,20 +43,24 @@ void audio::playAudio(int index)
             Mix_HaltChannel(channelMap[index]);
         }
         int channel = Mix_PlayChannel(-1, audios[index], 0);
-        while (channel == -1)
+        if (channel == -1)
         {
-            Mix_AllocateChannels(Mix_AllocateChannels(-1) + 1);
-            channel = Mix_PlayChannel(-1, audios[index], 0);
+            int len = Mix_AllocateChannels(-1);
+            Mix_AllocateChannels(len + 1);
+            channel = Mix_PlayChannel(len, audios[index], 0);
         }
-        for (std::map<int, int>::iterator i = channelMap.begin(), n = i; i != channelMap.end(); i = n)
+        if (channel >= 0)
         {
-            ++n;
-            if (i->second == channel)
+            for (std::map<int, int>::iterator i = channelMap.begin(), n = i; i != channelMap.end(); i = n)
             {
-                channelMap.erase(i);
+                ++n;
+                if (i->second == channel)
+                {
+                    channelMap.erase(i);
+                }
             }
+            channelMap[index] = channel;
         }
-        channelMap[index] = channel;
     }
 }
 
@@ -70,6 +74,14 @@ void audio::stopAudio(int index)
             channelMap.erase(index);
         }
     }
+}
+
+void audio::freeMemoryAudio()
+{
+    int len;
+    for (len = Mix_AllocateChannels(-1); len > 0 && !Mix_Playing(len - 1); len--)
+        ;
+    Mix_AllocateChannels(len);
 }
 
 bool audio::isPlayingAudio()
@@ -127,4 +139,5 @@ void audio::release()
     }
     Mix_CloseAudio();
     Mix_Quit();
+    printf("\033[?1049l");
 }
