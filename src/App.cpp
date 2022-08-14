@@ -17,8 +17,9 @@ App::App(Scene *initialScene)
     audio::initialise();
     file::initialise();
     keys::load();
-    window = SDL_CreateWindow("Raven Lune", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, 0);
+    window = SDL_CreateWindow("Raven Lune", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_RenderSetLogicalSize(renderer, 640, 480);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
     scene = initialScene;
     if (scene)
