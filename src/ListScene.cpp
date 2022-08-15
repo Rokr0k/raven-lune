@@ -55,59 +55,46 @@ void ListScene::draw()
 
 void ListScene::onkeydown(SDL_KeyboardEvent key)
 {
-    if (key.keysym.sym == keys::getKey(keys::S_1))
+    switch (key.keysym.sym)
     {
+    case SDLK_LEFT:
         if (loaded && !selected)
         {
             index = (index + infos.size() - 1) % infos.size();
         }
-    }
-    else if (key.keysym.sym == keys::getKey(keys::S_2))
-    {
+        break;
+    case SDLK_RIGHT:
         if (loaded && !selected)
         {
             index = (index + 1) % infos.size();
         }
-    }
-    else if (key.keysym.sym == keys::getKey(keys::S_3))
-    {
+        break;
+    case SDLK_RETURN:
         if (loaded && !selected && index < infos.size())
         {
             selected = true;
-            autoSelected = false;
+            autoSelected = key.keysym.mod & KMOD_SHIFT;
             timer = SDL_GetTicks() + 2000;
             chart = file::charts[index];
         }
-    }
-    else if (key.keysym.sym == keys::getKey(keys::S_4))
-    {
+        break;
+    case SDLK_r:
         if (loaded && !selected)
         {
             loaded = false;
             file::release();
             file::initialise();
         }
-    }
-    else if (key.keysym.sym == keys::getKey(keys::S_5))
-    {
-        if (loaded && !selected && index < infos.size())
-        {
-            selected = true;
-            autoSelected = true;
-            timer = SDL_GetTicks() + 2000;
-            chart = file::charts[index];
-        }
-    }
-    else if (key.keysym.sym == keys::getKey(keys::S_8))
-    {
+        break;
+    case SDLK_k:
         if (!selected)
         {
             app->changeScene(new KeysScene(app));
         }
-    }
-    else if (key.keysym.sym == keys::getKey(keys::S_9))
-    {
+        break;
+    case SDLK_ESCAPE:
         app->changeScene(new TitleScene(app));
+        break;
     }
 }
 

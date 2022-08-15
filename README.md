@@ -24,6 +24,7 @@ mkdir build
 cd build
 cmake ..
 make
+./raven-lune
 ```
 
 # How to Play
@@ -72,41 +73,27 @@ make
 
 `Space`: Start
 
+`Escape`: Quit
+
 ## List Screen
 
-<table>
-   <tr>
-      <td colspan="8">Player 1</td>
-   </tr>
-   <tr>
-      <td>None</td>
-      <td>List down</td>
-      <td>List up</td>
-      <td>Play</td>
-      <td>Refresh</td>
-      <td>Auto play</td>
-      <td>Key Settings</td>
-      <td>Back to title</td>
-   </tr>
-</table>
+`Left Arrow`: Next chart
+
+`Right Arrow`: Previous chart
+
+`Enter`: Start playing
+
+`Shift` + `Enter`: Autoplay
+
+`R`: Refresh
+
+`K`: Key setting
+
+`Escape`: Quit
 
 ## Result Screen
 
-<table>
-   <tr>
-      <td colspan="8">Player 1</td>
-   </tr>
-   <tr>
-      <td>None</td>
-      <td>Return to list</td>
-      <td>None</td>
-      <td>None</td>
-      <td>None</td>
-      <td>None</td>
-      <td>None</td>
-      <td>None</td>
-   </tr>
-</table>
+`Enter`: Go to list
 
 ## Key Settings Screen
 
@@ -116,7 +103,7 @@ make
 
 `Backspace`: Toggle between SP and DP
 
-`Escape`: Back to list
+`Escape`: Save and Go to list
 
 # Todo
 

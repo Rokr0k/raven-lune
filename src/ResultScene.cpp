@@ -60,7 +60,7 @@ void ResultScene::release()
 
 void ResultScene::onkeydown(SDL_KeyboardEvent key)
 {
-    if (key.keysym.sym == keys::getKey(keys::KeysType::S_1))
+    if (key.keysym.sym == SDLK_RETURN)
     {
         app->changeScene(new ListScene(app));
     }
