@@ -1,39 +1,82 @@
 #include "bga.hpp"
 #include <map>
 #include "image.hpp"
+#include "video.hpp"
 
 using namespace rl;
 
-static std::map<int, std::pair<SDL_Texture *, bool>> textures;
+struct BGA
+{
+public:
+    union
+    {
+        SDL_Surface *image;
+        Video *video;
+    };
+    enum class Type
+    {
+        IMAGE,
+        VIDEO
+    } type;
 
-void bga::load(SDL_Renderer *renderer, int key, const std::string &file)
+    BGA() {}
+
+    BGA(SDL_Surface *image)
+    {
+        this->image = image;
+        type = Type::IMAGE;
+    }
+
+    BGA(Video *video)
+    {
+        this->video = video;
+        type = Type::VIDEO;
+    }
+};
+
+static std::map<int, BGA> textures;
+
+void bga::load(int key, const std::string &file)
 {
     SDL_Surface *img = image::loadImage(file);
     if (img)
     {
         SDL_SetColorKey(img, 1, SDL_MapRGB(img->format, 0x00, 0x00, 0x00));
-        SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, img);
-        SDL_FreeSurface(img);
-        textures[key] = std::make_pair(tex, false);
+        textures[key] = img;
+    }
+    else
+    {
+        textures[key] = new Video(file);
     }
 }
 
-SDL_Texture *bga::get(int key)
+SDL_Surface *bga::get(int key, float time)
 {
     if (textures.find(key) != textures.end())
     {
-        return textures[key].first;
+        switch (textures[key].type)
+        {
+        case BGA::Type::IMAGE:
+            return textures[key].image;
+        case BGA::Type::VIDEO:
+            return (*textures[key].video)(time);
+        }
     }
     return NULL;
 }
 
 void bga::release()
 {
-    for (const std::pair<int, std::pair<SDL_Texture *, bool>> &a : textures)
+    for (const std::pair<int, BGA> &a : textures)
     {
-        if (!a.second.second)
+        switch (a.second.type)
         {
-            SDL_DestroyTexture(a.second.first);
+        case BGA::Type::IMAGE:
+            SDL_FreeSurface(a.second.image);
+            break;
+        case BGA::Type::VIDEO:
+            delete a.second.video;
+            break;
         }
     }
     textures.clear();

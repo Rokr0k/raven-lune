@@ -29,7 +29,7 @@ void PlayScene::initialise()
         }
         if (!chart.bmps[i].empty())
         {
-            bga::load(app->renderer, i, chart.bmps[i]);
+            bga::load(i, chart.bmps[i]);
         }
     }
 
@@ -149,9 +149,9 @@ void PlayScene::draw()
     }
     if (pressed[{1, 8}])
     {
-    for (int i = 0; i < 1296; i++)
-    {
-    }
+        for (int i = 0; i < 1296; i++)
+        {
+        }
         SDL_FRect rect = {120, 0, 15, 480};
         SDL_RenderFillRectF(app->renderer, &rect);
     }
@@ -516,10 +516,12 @@ void PlayScene::draw()
             if (obj.bmp.layer >= 0)
             {
                 bgas[obj.bmp.layer] = obj.bmp.key;
+                bgaStarted[obj.bmp.layer] = obj.time;
             }
             else
             {
                 bgas[2] = obj.bmp.key;
+                bgaStarted[2] = obj.time;
             }
             obj.executed = true;
             break;
@@ -603,18 +605,24 @@ void PlayScene::draw()
     {
         SDL_SetRenderDrawColor(app->renderer, 0x00, 0x00, 0x00, 0xFF);
         SDL_RenderFillRectF(app->renderer, &bgaRect);
-        SDL_Texture *bga = bga::get(bgas[0]);
-        SDL_RenderCopyF(app->renderer, bga, NULL, &bgaRect);
+        SDL_Surface *bga = bga::get(bgas[0], currentTime - bgaStarted[0]);
+        SDL_Texture *bgaT = SDL_CreateTextureFromSurface(app->renderer, bga);
+        SDL_RenderCopyF(app->renderer, bgaT, NULL, &bgaRect);
+        SDL_DestroyTexture(bgaT);
     }
     if (bgas[1] >= 0)
     {
-        SDL_Texture *bga = bga::get(bgas[1]);
-        SDL_RenderCopyF(app->renderer, bga, NULL, &bgaRect);
+        SDL_Surface *bga = bga::get(bgas[1], currentTime - bgaStarted[1]);
+        SDL_Texture *bgaT = SDL_CreateTextureFromSurface(app->renderer, bga);
+        SDL_RenderCopyF(app->renderer, bgaT, NULL, &bgaRect);
+        SDL_DestroyTexture(bgaT);
     }
     if (bgas[2] >= 0 && currentTime < judgeTime && (judgeType == JudgeType::POOR || judgeType == JudgeType::GPOOR))
     {
-        SDL_Texture *bga = bga::get(bgas[2]);
-        SDL_RenderCopyF(app->renderer, bga, NULL, &bgaRect);
+        SDL_Surface *bga = bga::get(bgas[2], currentTime - bgaStarted[2]);
+        SDL_Texture *bgaT = SDL_CreateTextureFromSurface(app->renderer, bga);
+        SDL_RenderCopyF(app->renderer, bgaT, NULL, &bgaRect);
+        SDL_DestroyTexture(bgaT);
     }
 
     SDL_SetRenderDrawColor(app->renderer, 0x33, 0xff, 0xff, 0xff);

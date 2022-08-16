@@ -139,5 +139,4 @@ void audio::release()
     }
     Mix_CloseAudio();
     Mix_Quit();
-    printf("\033[?1049l");
 }
