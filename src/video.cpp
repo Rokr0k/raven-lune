@@ -22,11 +22,32 @@ void Video::unlock(void *data, void *id, void *const *p_pixels)
 void Video::display(void *data, void *id)
 {
     Video *video = (Video *)data;
-    if (video->start == -1)
+    if (video->first)
     {
+        video->fps = -1;
+        libvlc_media_track_t **tracks = NULL;
+        unsigned int count = libvlc_media_tracks_get(video->media, &tracks);
+        for (unsigned int i = 0; i < count; i++)
+        {
+            if (tracks[i]->i_type == libvlc_track_video && tracks[i]->video->i_frame_rate_den)
+            {
+                video->fps = tracks[i]->video->i_frame_rate_num / tracks[i]->video->i_frame_rate_den;
+                break;
+            }
+        }
+        libvlc_media_tracks_release(tracks, count);
+        video->first = false;
         video->start = SDL_GetTicks();
+        video->count = 0;
     }
-    video->pictQueue.push({SDL_DuplicateSurface(video->surface), (SDL_GetTicks() - video->start) * 0.001f});
+    if (video->fps < 0)
+    {
+        video->pictQueue.push({SDL_DuplicateSurface(video->surface), (SDL_GetTicks() - video->start) * 0.001f});
+    }
+    else
+    {
+        video->pictQueue.push({SDL_DuplicateSurface(video->surface), video->count++ / video->fps});
+    }
 }
 
 Video::Video(const std::string &file)
@@ -47,11 +68,10 @@ Video::Video(const std::string &file)
         }
     }
     player = libvlc_media_player_new_from_media(media);
-    libvlc_media_release(media);
     libvlc_video_set_format(player, "RV16", 256, 256, 512);
     libvlc_video_set_callbacks(player, lock, unlock, display, this);
     libvlc_media_player_play(player);
-    start = -1;
+    first = true;
 }
 
 SDL_Surface *Video::operator()(float time)
@@ -85,5 +105,6 @@ Video::~Video()
     }
     libvlc_media_player_stop(player);
     libvlc_media_player_release(player);
+    libvlc_media_release(media);
     libvlc_release(instance);
 }
