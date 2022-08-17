@@ -10,6 +10,7 @@ BMS Player powered by SDL.
 - SDL2_image
 - SDL2_mixer
 - SDL2_ttf
+- libVLC
 
 ## Commands
 
@@ -30,7 +31,7 @@ make
 # How to Play
 
 1. Copy `res` directory to the same location with the executable.
-2. Edit `res/list.txt`, write directories where bms files are stored at each line.
+2. Edit `res/data/list.txt`, write directories where bms files are stored at each line.
    - `~` or other shell options are not available.
    - Relative path may be working, but relative to the executable. (not tested)
 3. Run executable.
@@ -107,5 +108,4 @@ make
 
 # Todo
 
-- Play video
 - Improve design
