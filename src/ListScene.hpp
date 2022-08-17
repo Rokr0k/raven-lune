@@ -34,9 +34,10 @@ namespace rl
             SDL_FRect stagefileRect;
         };
         std::vector<info_t> infos;
-        std::size_t index;
+        size_t index;
         bms::Chart *chart;
         void onload();
+        static size_t gindex;
 
     public:
         ListScene(App *app) : Scene(app) {}

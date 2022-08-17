@@ -10,6 +10,8 @@
 
 using namespace rl;
 
+std::size_t ListScene::gindex = 0;
+
 void ListScene::initialise()
 {
     int w, h;
@@ -75,6 +77,7 @@ void ListScene::onkeydown(SDL_KeyboardEvent key)
             selected = true;
             autoSelected = key.keysym.mod & KMOD_SHIFT;
             timer = SDL_GetTicks() + 2000;
+            gindex = index;
             chart = file::charts[index];
         }
         break;
@@ -84,6 +87,7 @@ void ListScene::onkeydown(SDL_KeyboardEvent key)
             loaded = false;
             file::release();
             file::initialise();
+            index = gindex = 0;
         }
         break;
     case SDLK_k:
@@ -115,7 +119,7 @@ void ListScene::release()
 
 void ListScene::onload()
 {
-    index = 0;
+    index = gindex;
     for (const bms::Chart *chart : file::charts)
     {
         info_t info = {};
