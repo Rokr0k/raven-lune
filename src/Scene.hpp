@@ -13,8 +13,11 @@ namespace rl
         App *app;
 
     public:
-        Scene(App *app) : app(app) {}
-        virtual void initialise() {}
+        Scene() {}
+        virtual void initialise(App *app)
+        {
+            this->app = app;
+        }
         virtual void draw() {}
         virtual void release() {}
         virtual void onkeydown(SDL_KeyboardEvent key) {}

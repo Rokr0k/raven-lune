@@ -17,8 +17,7 @@ namespace rl
         std::vector<std::pair<int, int>> ranges;
 
     public:
-        KeysScene(App *app) : Scene(app) {}
-        void initialise();
+        void initialise(App *app);
         void draw();
         void release();
         void onkeydown(SDL_KeyboardEvent key);

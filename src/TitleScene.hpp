@@ -13,8 +13,7 @@ namespace rl
         SDL_FRect instructionRect;
 
     public:
-        TitleScene(App *app) : Scene(app) {}
-        void initialise();
+        void initialise(App *app);
         void draw();
         void release();
         void onkeydown(SDL_KeyboardEvent key);

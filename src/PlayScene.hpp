@@ -58,8 +58,8 @@ namespace rl
         void judge(JudgeType j);
 
     public:
-        PlayScene(App *app, bms::Chart chart, bool automatic = false) : Scene(app), chart(chart), automatic(automatic) {}
-        void initialise();
+        PlayScene(bms::Chart chart, bool automatic = false) : chart(chart), automatic(automatic) {}
+        void initialise(App *app);
         void draw();
         void release();
         void onkeydown(SDL_KeyboardEvent key);

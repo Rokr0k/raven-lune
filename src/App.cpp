@@ -24,7 +24,7 @@ App::App(Scene *initialScene)
     scene = initialScene;
     if (scene)
     {
-        scene->initialise();
+        scene->initialise(this);
     }
 }
 
@@ -84,5 +84,5 @@ void App::changeScene(Scene *newScene)
     scene->release();
     delete scene;
     scene = newScene;
-    scene->initialise();
+    scene->initialise(this);
 }

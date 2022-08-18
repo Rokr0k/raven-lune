@@ -19,8 +19,9 @@ constexpr float judgeLine[][5] = {
     {0.021f, 0.060f, 0.120f, 0.200f, 1.000f},
 };
 
-void PlayScene::initialise()
+void PlayScene::initialise(App *app)
 {
+    Scene::initialise(app);
     for (int i = 0; i < 1296; i++)
     {
         if (!chart.wavs[i].empty())
@@ -636,11 +637,11 @@ void PlayScene::draw()
     {
         if (automatic)
         {
-            app->changeScene(new ListScene(app));
+            app->changeScene(new ListScene());
         }
         else
         {
-            app->changeScene(new ResultScene(app, ResultScene::Result{gauge > 80, {judgeCount[0], judgeCount[1], judgeCount[2], judgeCount[3], judgeCount[4]}, maxCombo, noteCnt}));
+            app->changeScene(new ResultScene(ResultScene::Result{gauge > 80, {judgeCount[0], judgeCount[1], judgeCount[2], judgeCount[3], judgeCount[4]}, maxCombo, noteCnt}));
         }
     }
 }
@@ -805,7 +806,7 @@ void PlayScene::onkeydown(SDL_KeyboardEvent key)
         }
         break;
     case SDLK_ESCAPE:
-        app->changeScene(new ListScene(app));
+        app->changeScene(new ListScene());
         break;
     }
 }

@@ -12,14 +12,18 @@ using namespace rl;
 
 std::size_t ListScene::gindex = 0;
 
-void ListScene::initialise()
+void ListScene::initialise(App *app)
 {
+    Scene::initialise(app);
     int w, h;
     loaded = false;
     selected = false;
     loading = font::renderText(app->renderer, "Loading...");
     SDL_QueryTexture(loading, NULL, NULL, &w, &h);
     loadingRect = {0, 0, (float)w / h * 40, 40};
+    noCharts = font::renderText(app->renderer, "No charts available.");
+    SDL_QueryTexture(noCharts, NULL, NULL, &w, &h);
+    noChartsRect = {0, 0, (float)w / h * 40, 40};
 }
 
 void ListScene::draw()
@@ -35,7 +39,11 @@ void ListScene::draw()
     }
     else if (!selected)
     {
-        if (index < infos.size())
+        if(infos.empty())
+        {
+            SDL_RenderCopyF(app->renderer, noCharts, NULL, &noChartsRect);
+        }
+        else if (index < infos.size())
         {
             SDL_RenderCopyF(app->renderer, infos[index].genre, NULL, &infos[index].genreRect);
             SDL_RenderCopyF(app->renderer, infos[index].title, NULL, &infos[index].titleRect);
@@ -50,7 +58,7 @@ void ListScene::draw()
         SDL_RenderCopyF(app->renderer, infos[index].stagefile, NULL, &infos[index].stagefileRect);
         if (timer < SDL_GetTicks())
         {
-            app->changeScene(new PlayScene(app, *chart, autoSelected));
+            app->changeScene(new PlayScene(*chart, autoSelected));
         }
     }
 }
@@ -93,11 +101,11 @@ void ListScene::onkeydown(SDL_KeyboardEvent key)
     case SDLK_k:
         if (!selected)
         {
-            app->changeScene(new KeysScene(app));
+            app->changeScene(new KeysScene());
         }
         break;
     case SDLK_ESCAPE:
-        app->changeScene(new TitleScene(app));
+        app->changeScene(new TitleScene());
         break;
     }
 }
@@ -105,6 +113,7 @@ void ListScene::onkeydown(SDL_KeyboardEvent key)
 void ListScene::release()
 {
     SDL_DestroyTexture(loading);
+    SDL_DestroyTexture(noCharts);
     for (const info_t &info : infos)
     {
         SDL_DestroyTexture(info.genre);

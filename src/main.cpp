@@ -3,6 +3,6 @@
 
 int main(int argc, char **argv)
 {
-    rl::App app(new rl::TitleScene(&app));
+    rl::App app(new rl::TitleScene());
     return app.loop();
 }

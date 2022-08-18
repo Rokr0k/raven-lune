@@ -16,6 +16,8 @@ namespace rl
         Uint32 timer;
         SDL_Texture *loading;
         SDL_FRect loadingRect;
+        SDL_Texture *noCharts;
+        SDL_FRect noChartsRect;
         struct info_t
         {
             SDL_Texture *genre;
@@ -40,8 +42,7 @@ namespace rl
         static size_t gindex;
 
     public:
-        ListScene(App *app) : Scene(app) {}
-        void initialise();
+        void initialise(App *app);
         void draw();
         void release();
         void onkeydown(SDL_KeyboardEvent event);

@@ -5,8 +5,9 @@
 
 using namespace rl;
 
-void KeysScene::initialise()
+void KeysScene::initialise(App *app)
 {
+    Scene::initialise(app);
     keys::load();
     keyType = 0;
     mode = 0;
@@ -113,7 +114,7 @@ void KeysScene::onkeydown(SDL_KeyboardEvent key)
         }
         if (key.keysym.sym == SDLK_ESCAPE)
         {
-            app->changeScene(new ListScene(app));
+            app->changeScene(new ListScene());
         }
         if (key.keysym.sym == SDLK_UP)
         {

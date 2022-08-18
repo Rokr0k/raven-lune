@@ -5,8 +5,9 @@
 
 using namespace rl;
 
-void TitleScene::initialise()
+void TitleScene::initialise(App *app)
 {
+    Scene::initialise(app);
     int w, h;
     title = font::renderText(app->renderer, "Raven Lune");
     SDL_QueryTexture(title, NULL, NULL, &w, &h);
@@ -27,7 +28,7 @@ void TitleScene::onkeydown(SDL_KeyboardEvent key)
     switch (key.keysym.sym)
     {
     case SDLK_SPACE:
-        app->changeScene(new ListScene(app));
+        app->changeScene(new ListScene());
         break;
     case SDLK_ESCAPE:
     {

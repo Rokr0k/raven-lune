@@ -5,8 +5,9 @@
 
 using namespace rl;
 
-void ResultScene::initialise()
+void ResultScene::initialise(App *app)
 {
+    Scene::initialise(app);
     int w, h;
     cleared = font::renderText(app->renderer, result.cleared ? "Stage Cleared" : "Stage Failed");
     SDL_QueryTexture(cleared, NULL, NULL, &w, &h);
@@ -62,6 +63,6 @@ void ResultScene::onkeydown(SDL_KeyboardEvent key)
 {
     if (key.keysym.sym == SDLK_RETURN)
     {
-        app->changeScene(new ListScene(app));
+        app->changeScene(new ListScene());
     }
 }

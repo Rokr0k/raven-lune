@@ -28,8 +28,8 @@ namespace rl
         SDL_FRect rankRect;
 
     public:
-        ResultScene(App *app, Result result) : Scene(app), result(result) {}
-        void initialise();
+        ResultScene(Result result) : result(result) {}
+        void initialise(App *app);
         void draw();
         void release();
         void onkeydown(SDL_KeyboardEvent key);
