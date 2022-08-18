@@ -32,8 +32,7 @@ make
 
 1. Copy `res` directory to the same location with the executable.
 2. Edit `res/data/list.txt`, write directories where bms files are stored at each line.
-   - `~` or other shell options are not available.
-   - Relative path may be working, but relative to the executable. (not tested)
+   - Relative path works based on the executable location.
 3. Run executable.
 
 # Controls
