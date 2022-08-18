@@ -1,6 +1,7 @@
 #include <fstream>
 #include "file.hpp"
 #include <regex>
+#include <string.h>
 
 using namespace rl;
 
@@ -11,23 +12,21 @@ std::future<void> file::loading;
 
 #include <glob.h>
 
-static void loopFiles(const std::string &path, std::vector<std::future<void>> &tasks)
+static void findBMS(const std::string &path, std::vector<std::future<void>> &tasks)
 {
     glob_t g;
-    glob((path + "/**/*.bms").c_str(), GLOB_TILDE | GLOB_BRACE, NULL, &g);
-    glob((path + "/**/*.bme").c_str(), GLOB_TILDE | GLOB_BRACE | GLOB_APPEND, NULL, &g);
-    glob((path + "/**/*.bml").c_str(), GLOB_TILDE | GLOB_BRACE | GLOB_APPEND, NULL, &g);
+    glob((path + "/**/*.bm{s,e,l}").c_str(), GLOB_TILDE | GLOB_BRACE, NULL, &g);
     for (size_t j = 0; j < g.gl_pathc; j++)
     {
         tasks.push_back(std::async(
-            std::launch::async, [](const std::string &file)
+            std::launch::async, [](std::string file)
             {
-                            bms::Chart *chart = bms::parseBMS(file);
-                            if(chart)
-                            {
-                                file::charts.push_back(chart);
-                            } },
-            g.gl_pathv[j]));
+                bms::Chart *chart = bms::parseBMS(file);
+                if(chart)
+                {
+                    file::charts.push_back(chart);
+                }},
+            std::string(g.gl_pathv[j])));
     }
     globfree(&g);
 }
@@ -36,7 +35,7 @@ static void loopFiles(const std::string &path, std::vector<std::future<void>> &t
 
 #include <Windows.h>
 
-static void loopFiles(const std::string &path, std::vector<std::future<void>> &tasks)
+static void findBMS(const std::string &path, std::vector<std::future<void>> &tasks)
 {
     //
 }
@@ -52,7 +51,7 @@ void file::initialise()
         std::vector<std::future<void>> tasks;
         while (std::getline(list, dir))
         {
-            loopFiles(dir, tasks);
+            findBMS(dir, tasks);
         }
         list.close();
         for(const std::future<void> &task : tasks)
