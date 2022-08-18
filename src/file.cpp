@@ -1,6 +1,5 @@
-#include "file.hpp"
-#include <filesystem>
 #include <fstream>
+#include "file.hpp"
 #include <regex>
 
 using namespace rl;
@@ -8,33 +7,52 @@ using namespace rl;
 std::vector<bms::Chart *> file::charts;
 std::future<void> file::loading;
 
+#if defined(__unix__)
+
+#include <glob.h>
+
+static void loopFiles(const std::string &path, std::vector<std::future<void>> &tasks)
+{
+    glob_t g;
+    glob((path + "/**/*.bms").c_str(), GLOB_TILDE | GLOB_BRACE, NULL, &g);
+    glob((path + "/**/*.bme").c_str(), GLOB_TILDE | GLOB_BRACE | GLOB_APPEND, NULL, &g);
+    glob((path + "/**/*.bml").c_str(), GLOB_TILDE | GLOB_BRACE | GLOB_APPEND, NULL, &g);
+    for (size_t j = 0; j < g.gl_pathc; j++)
+    {
+        tasks.push_back(std::async(
+            std::launch::async, [](const std::string &file)
+            {
+                            bms::Chart *chart = bms::parseBMS(file);
+                            if(chart)
+                            {
+                                file::charts.push_back(chart);
+                            } },
+            g.gl_pathv[j]));
+    }
+    globfree(&g);
+}
+
+#elif defined(__WIN32__)
+
+#include <Windows.h>
+
+static void loopFiles(const std::string &path, std::vector<std::future<void>> &tasks)
+{
+    //
+}
+
+#endif
+
 void file::initialise()
 {
     loading = std::async(std::launch::async, []()
                          {
         std::ifstream list("res/data/list.txt");
         std::string dir;
-        std::regex fileRegex = std::regex(R"(^\.(bms|bme|bml)$)", std::regex_constants::icase);
         std::vector<std::future<void>> tasks;
         while (std::getline(list, dir))
         {
-            std::filesystem::path dirPath = std::filesystem::canonical(std::regex_replace(dir, std::regex(R"(~)"), getenv("HOME")));
-            if (std::filesystem::is_directory(dirPath))
-            {
-                for (const std::filesystem::directory_entry &i : std::filesystem::recursive_directory_iterator(dirPath))
-                {
-                    if (i.is_regular_file() && std::regex_match(i.path().extension().string(), fileRegex))
-                    {
-                        tasks.push_back(std::async(std::launch::async, [](const std::filesystem::directory_entry &i){
-                            bms::Chart *chart = bms::parseBMS(i.path());
-                            if(chart)
-                            {
-                                file::charts.push_back(chart);
-                            }
-                        }, i));
-                    }
-                }
-            }
+            loopFiles(dir, tasks);
         }
         list.close();
         for(const std::future<void> &task : tasks)
