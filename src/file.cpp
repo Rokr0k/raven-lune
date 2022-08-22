@@ -1,7 +1,7 @@
 #include <fstream>
 #include "file.hpp"
-#include <regex>
 #include <string.h>
+#include <algorithm>
 
 using namespace rl;
 
@@ -25,19 +25,51 @@ static void findBMS(const std::string &path, std::vector<std::future<void>> &tas
                 if(chart)
                 {
                     file::charts.push_back(chart);
-                }},
+                } },
             std::string(g.gl_pathv[j])));
     }
     globfree(&g);
 }
 
-#elif defined(__WIN32__)
+#elif defined(_WIN32)
 
+#include <regex>
 #include <Windows.h>
+#include <fileapi.h>
 
 static void findBMS(const std::string &path, std::vector<std::future<void>> &tasks)
 {
-    //
+    printf("%s\n", path.c_str());
+    std::string a(path);
+    if (a.back() != '/' && a.back() != '\\')
+    {
+        a += '\\';
+    }
+    WIN32_FIND_DATAA data;
+    HANDLE h = FindFirstFileA(path.c_str(), &data);
+    do
+    {
+        if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        {
+            findBMS(a + data.cFileName, tasks);
+        }
+        else
+        {
+            std::string p(a + data.cFileName);
+            if (std::regex_match(p, std::regex(R"(.*\.bm[sel])")))
+            {
+                tasks.push_back(std::async(
+                    std::launch::async, [](std::string file)
+                    {
+                bms::Chart *chart = bms::parseBMS(file);
+                if(chart)
+                {
+                    file::charts.push_back(chart);
+                } },
+                    p));
+            }
+        }
+    } while (FindNextFileA(h, &data));
 }
 
 #endif

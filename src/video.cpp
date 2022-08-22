@@ -31,7 +31,7 @@ void Video::display(void *data, void *id)
         {
             if (tracks[i]->i_type == libvlc_track_video && tracks[i]->video->i_frame_rate_den)
             {
-                video->fps = tracks[i]->video->i_frame_rate_num / tracks[i]->video->i_frame_rate_den;
+                video->fps = (float)tracks[i]->video->i_frame_rate_num / (float)tracks[i]->video->i_frame_rate_den;
                 break;
             }
         }
@@ -52,11 +52,24 @@ void Video::display(void *data, void *id)
 
 Video::Video(const std::string &file)
 {
-    surface = SDL_CreateRGBSurface(SDL_SWSURFACE, 256, 256, 16, 0x001f, 0x07e0, 0xf800, 0);
+    surface = SDL_CreateRGBSurfaceWithFormat(SDL_SWSURFACE, 256, 256, 16, SDL_PIXELFORMAT_BGR565);
     instance = libvlc_new(0, NULL);
     for (int i = 0; i < 6; i++)
     {
         std::string path = file.substr(0, file.find_last_of('.')) + possibleFormats[i];
+#ifdef _WIN32
+        FILE *f = NULL;
+        fopen_s(&f, path.c_str(), "r");
+        if (f)
+        {
+            fclose(f);
+            media = libvlc_media_new_path(instance, path.c_str());
+            if (media)
+            {
+                break;
+            }
+        }
+#else
         if (FILE *f = fopen(path.c_str(), "r"))
         {
             fclose(f);
@@ -66,6 +79,7 @@ Video::Video(const std::string &file)
                 break;
             }
         }
+#endif
     }
     player = libvlc_media_player_new_from_media(media);
     libvlc_video_set_format(player, "RV16", 256, 256, 512);
