@@ -76,9 +76,10 @@ std::vector<std::string> file::getAltFiles(const std::string &file)
 {
     std::vector<std::string> res;
     std::filesystem::path path(file);
-    if (std::filesystem::exists(path))
+    std::filesystem::path parent(path.parent_path());
+    if (std::filesystem::exists(parent))
     {
-        for (const std::filesystem::directory_entry &i : std::filesystem::directory_iterator(path.parent_path()))
+        for (const std::filesystem::directory_entry &i : std::filesystem::directory_iterator(parent))
         {
             if (i.path().stem() == path.stem())
             {

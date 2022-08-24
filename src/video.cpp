@@ -88,6 +88,10 @@ SDL_Surface *Video::operator()(float time)
 
 Video::~Video()
 {
+    libvlc_media_player_stop(player);
+    libvlc_media_player_release(player);
+    libvlc_media_release(media);
+    libvlc_release(instance);
     if (surface)
     {
         SDL_FreeSurface(surface);
@@ -97,8 +101,4 @@ Video::~Video()
         SDL_FreeSurface(pictQueue.front().surface);
         pictQueue.pop();
     }
-    libvlc_media_player_stop(player);
-    libvlc_media_player_release(player);
-    libvlc_media_release(media);
-    libvlc_release(instance);
 }
