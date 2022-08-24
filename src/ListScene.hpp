@@ -37,7 +37,6 @@ namespace rl
         };
         std::vector<info_t> infos;
         size_t index;
-        bms::Chart *chart;
         void onload();
         static size_t gindex;
 

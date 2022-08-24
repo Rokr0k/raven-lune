@@ -10,7 +10,14 @@ namespace rl
     class PlayScene : public Scene
     {
     private:
-        bms::Chart chart;
+        class Obj : public bms::Obj
+        {
+        public:
+            bool executed;
+            Obj(const bms::Obj &obj) : bms::Obj(obj), executed(false) {}
+        };
+        bms::Chart *chart;
+        std::vector<Obj> objs;
         bool automatic;
         Uint32 timer;
         int speed;
@@ -58,7 +65,7 @@ namespace rl
         void judge(JudgeType j);
 
     public:
-        PlayScene(bms::Chart chart, bool automatic = false) : chart(chart), automatic(automatic) {}
+        PlayScene(bms::Chart *chart, bool automatic = false) : chart(chart), automatic(automatic) {}
         void initialise(App *app);
         void draw();
         void release();

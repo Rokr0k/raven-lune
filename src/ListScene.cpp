@@ -39,7 +39,7 @@ void ListScene::draw()
     }
     else if (!selected)
     {
-        if(infos.empty())
+        if (infos.empty())
         {
             SDL_RenderCopyF(app->renderer, noCharts, NULL, &noChartsRect);
         }
@@ -58,7 +58,7 @@ void ListScene::draw()
         SDL_RenderCopyF(app->renderer, infos[index].stagefile, NULL, &infos[index].stagefileRect);
         if (timer < SDL_GetTicks())
         {
-            app->changeScene(new PlayScene(*chart, autoSelected));
+            app->changeScene(new PlayScene(file::charts[index], autoSelected));
         }
     }
 }
@@ -85,8 +85,6 @@ void ListScene::onkeydown(SDL_KeyboardEvent key)
             selected = true;
             autoSelected = key.keysym.mod & KMOD_SHIFT;
             timer = SDL_GetTicks() + 2000;
-            gindex = index;
-            chart = file::charts[index];
         }
         break;
     case SDLK_r:
@@ -95,7 +93,7 @@ void ListScene::onkeydown(SDL_KeyboardEvent key)
             loaded = false;
             file::release();
             file::initialise();
-            index = gindex = 0;
+            index = 0;
         }
         break;
     case SDLK_k:
@@ -112,6 +110,7 @@ void ListScene::onkeydown(SDL_KeyboardEvent key)
 
 void ListScene::release()
 {
+    gindex = index;
     SDL_DestroyTexture(loading);
     SDL_DestroyTexture(noCharts);
     for (const info_t &info : infos)
