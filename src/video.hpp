@@ -27,7 +27,7 @@ namespace rl
         int count;
         bool first;
         Uint32 start;
-        float fps;
+        float spf;
 
         static void *lock(void *data, void **p_pixels);
         static void unlock(void *data, void *id, void *const *p_pixels);

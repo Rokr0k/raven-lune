@@ -16,6 +16,8 @@ set(CXX_HEADERS "src/file.hpp" "src/font.hpp" "src/audio.hpp" "src/image.hpp" "s
 
 add_executable(raven-lune ${CXX_SOURCES} ${CXX_HEADERS})
 
+target_compile_features(raven-lune PRIVATE cxx_std_17)
+
 target_include_directories(raven-lune PRIVATE ${SDL2_INCLUDE_DIRS} ${SDL2_IMAGE_INCLUDE_DIRS} ${SDL2_MIXER_INCLUDE_DIRS} ${SDL2_TTF_INCLUDE_DIRS} ${LIBVLC_INCLUDE_DIRS})
 target_link_libraries(raven-lune PRIVATE bmsparser ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${SDL2_MIXER_LIBRARIES} ${SDL2_TTF_LIBRARIES} ${LIBVLC_LIBRARIES})
 

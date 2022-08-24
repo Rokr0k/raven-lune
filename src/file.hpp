@@ -14,5 +14,7 @@ namespace rl
         void initialise();
 
         void release();
+
+        std::vector<std::string> getAltFiles(const std::string &file);
     }
 }

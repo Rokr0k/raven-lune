@@ -247,8 +247,6 @@ void PlayScene::draw()
         }
     }
 
-    audio::freeMemoryAudio();
-
     bool empty = true;
     for (bms::Obj &obj : chart.objs)
     {

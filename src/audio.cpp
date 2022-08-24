@@ -1,4 +1,5 @@
 #include "audio.hpp"
+#include "file.hpp"
 #include <SDL_mixer.h>
 #include <map>
 
@@ -8,8 +9,6 @@ static Mix_Chunk *audios[2000];
 static Mix_Music *music;
 
 static std::map<int, int> channelMap;
-
-static std::string possibleFormats[] = {".wav", ".ogg", ".flac", ".mp3"};
 
 void audio::initialise()
 {
@@ -24,9 +23,9 @@ void audio::loadAudio(int index, const std::string &file)
         Mix_FreeChunk(audios[index]);
         audios[index] = NULL;
     }
-    for (int i = 0; i < 4; i++)
+    for (const std::string &i : file::getAltFiles(file))
     {
-        audios[index] = Mix_LoadWAV((file.substr(0, file.find_last_of('.')) + possibleFormats[i]).c_str());
+        audios[index] = Mix_LoadWAV(i.c_str());
         if (audios[index])
         {
             break;
@@ -76,14 +75,6 @@ void audio::stopAudio(int index)
     }
 }
 
-void audio::freeMemoryAudio()
-{
-    int len;
-    for (len = Mix_AllocateChannels(-1); len > 0 && !Mix_Playing(len - 1); len--)
-        ;
-    Mix_AllocateChannels(len);
-}
-
 bool audio::isPlayingAudio()
 {
     return Mix_Playing(-1) > 0;
@@ -99,6 +90,7 @@ void audio::releaseAudio()
             audios[i] = NULL;
         }
     }
+    Mix_AllocateChannels(2);
 }
 
 void audio::playMusic(const std::string &file)

@@ -1,9 +1,8 @@
 #include "image.hpp"
+#include "file.hpp"
 #include <SDL_image.h>
 
 using namespace rl;
-
-static std::string possibleFormats[] = {".bmp", ".png", ".jpg"};
 
 void image::initialise()
 {
@@ -12,9 +11,9 @@ void image::initialise()
 
 SDL_Surface *image::loadImage(const std::string &file)
 {
-    for (int i = 0; i < 3; i++)
+    for (const std::string &i : file::getAltFiles(file))
     {
-        SDL_Surface *img = IMG_Load((file.substr(0, file.find_last_of('.')) + possibleFormats[i]).c_str());
+        SDL_Surface *img = IMG_Load(i.c_str());
         if (img)
         {
             return img;
@@ -25,9 +24,9 @@ SDL_Surface *image::loadImage(const std::string &file)
 
 SDL_Texture *image::loadImage(SDL_Renderer *renderer, const std::string &file)
 {
-    for (int i = 0; i < 3; i++)
+    for (const std::string &i : file::getAltFiles(file))
     {
-        SDL_Texture *img = IMG_LoadTexture(renderer, (file.substr(0, file.find_last_of('.')) + possibleFormats[i]).c_str());
+        SDL_Texture *img = IMG_LoadTexture(renderer, i.c_str());
         if (img)
         {
             return img;

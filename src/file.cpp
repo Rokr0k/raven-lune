@@ -2,77 +2,32 @@
 #include "file.hpp"
 #include <string.h>
 #include <algorithm>
+#include <filesystem>
+#include <regex>
 
 using namespace rl;
 
 std::vector<bms::Chart *> file::charts;
 std::future<void> file::loading;
 
-#if defined(__unix__)
-
-#include <glob.h>
-
 static void findBMS(const std::string &path, std::vector<std::future<void>> &tasks)
 {
-    glob_t g;
-    glob((path + "/**/*.bm{s,e,l}").c_str(), GLOB_TILDE | GLOB_BRACE, NULL, &g);
-    for (size_t j = 0; j < g.gl_pathc; j++)
+    for (const std::filesystem::directory_entry &i : std::filesystem::recursive_directory_iterator(path))
     {
-        tasks.push_back(std::async(
-            std::launch::async, [](std::string file)
-            {
+        if (i.is_regular_file() && std::regex_match(i.path().extension().string(), std::regex(R"(\.bm[sel])")))
+        {
+            tasks.push_back(std::async(
+                std::launch::async, [](std::string file)
+                {
                 bms::Chart *chart = bms::parseBMS(file);
                 if(chart)
                 {
                     file::charts.push_back(chart);
                 } },
-            std::string(g.gl_pathv[j])));
-    }
-    globfree(&g);
-}
-
-#elif defined(_WIN32)
-
-#include <regex>
-#include <Windows.h>
-#include <fileapi.h>
-
-static void findBMS(const std::string &path, std::vector<std::future<void>> &tasks)
-{
-    printf("%s\n", path.c_str());
-    std::string a(path);
-    if (a.back() != '/' && a.back() != '\\')
-    {
-        a += '\\';
-    }
-    WIN32_FIND_DATAA data;
-    HANDLE h = FindFirstFileA(path.c_str(), &data);
-    do
-    {
-        if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-        {
-            findBMS(a + data.cFileName, tasks);
+                i.path().string()));
         }
-        else
-        {
-            std::string p(a + data.cFileName);
-            if (std::regex_match(p, std::regex(R"(.*\.bm[sel])")))
-            {
-                tasks.push_back(std::async(
-                    std::launch::async, [](std::string file)
-                    {
-                bms::Chart *chart = bms::parseBMS(file);
-                if(chart)
-                {
-                    file::charts.push_back(chart);
-                } },
-                    p));
-            }
-        }
-    } while (FindNextFileA(h, &data));
+    }
 }
-
-#endif
 
 void file::initialise()
 {
@@ -115,4 +70,21 @@ void file::release()
         delete chart;
     }
     file::charts.clear();
+}
+
+std::vector<std::string> file::getAltFiles(const std::string &file)
+{
+    std::vector<std::string> res;
+    std::filesystem::path path(file);
+    if (std::filesystem::exists(path))
+    {
+        for (const std::filesystem::directory_entry &i : std::filesystem::directory_iterator(path.parent_path()))
+        {
+            if (i.path().stem() == path.stem())
+            {
+                res.push_back(i.path().string());
+            }
+        }
+    }
+    return res;
 }

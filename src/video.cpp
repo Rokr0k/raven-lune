@@ -1,9 +1,8 @@
 #include "video.hpp"
+#include "file.hpp"
 #include <fstream>
 
 using namespace rl;
-
-static std::string possibleFormats[] = {".mpg", ".mpeg", ".mp4", ".webm", ".avi", ".wmv"};
 
 void *Video::lock(void *data, void **p_pixels)
 {
@@ -24,14 +23,14 @@ void Video::display(void *data, void *id)
     Video *video = (Video *)data;
     if (video->first)
     {
-        video->fps = -1;
+        video->spf = -1;
         libvlc_media_track_t **tracks = NULL;
         unsigned int count = libvlc_media_tracks_get(video->media, &tracks);
         for (unsigned int i = 0; i < count; i++)
         {
-            if (tracks[i]->i_type == libvlc_track_video && tracks[i]->video->i_frame_rate_den)
+            if (tracks[i]->i_type == libvlc_track_video && tracks[i]->video->i_frame_rate_num && tracks[i]->video->i_frame_rate_den)
             {
-                video->fps = (float)tracks[i]->video->i_frame_rate_num / (float)tracks[i]->video->i_frame_rate_den;
+                video->spf = (float)tracks[i]->video->i_frame_rate_den / (float)tracks[i]->video->i_frame_rate_num;
                 break;
             }
         }
@@ -40,13 +39,13 @@ void Video::display(void *data, void *id)
         video->start = SDL_GetTicks();
         video->count = 0;
     }
-    if (video->fps < 0)
+    if (video->spf < 0)
     {
         video->pictQueue.push({SDL_DuplicateSurface(video->surface), (SDL_GetTicks() - video->start) * 0.001f});
     }
     else
     {
-        video->pictQueue.push({SDL_DuplicateSurface(video->surface), video->count++ / video->fps});
+        video->pictQueue.push({SDL_DuplicateSurface(video->surface), video->count++ * video->spf});
     }
 }
 
@@ -54,32 +53,13 @@ Video::Video(const std::string &file)
 {
     surface = SDL_CreateRGBSurfaceWithFormat(SDL_SWSURFACE, 256, 256, 16, SDL_PIXELFORMAT_BGR565);
     instance = libvlc_new(0, NULL);
-    for (int i = 0; i < 6; i++)
+    for (const std::string &i : file::getAltFiles(file))
     {
-        std::string path = file.substr(0, file.find_last_of('.')) + possibleFormats[i];
-#ifdef _WIN32
-        FILE *f = NULL;
-        fopen_s(&f, path.c_str(), "r");
-        if (f)
+        media = libvlc_media_new_path(instance, i.c_str());
+        if (media)
         {
-            fclose(f);
-            media = libvlc_media_new_path(instance, path.c_str());
-            if (media)
-            {
-                break;
-            }
+            break;
         }
-#else
-        if (FILE *f = fopen(path.c_str(), "r"))
-        {
-            fclose(f);
-            media = libvlc_media_new_path(instance, path.c_str());
-            if (media)
-            {
-                break;
-            }
-        }
-#endif
     }
     player = libvlc_media_player_new_from_media(media);
     libvlc_video_set_format(player, "RV16", 256, 256, 512);
