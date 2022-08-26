@@ -1,25 +1,54 @@
 #include "font.hpp"
+#include <map>
 #include <SDL_ttf.h>
 
 using namespace rl;
 
-static TTF_Font *font_;
+static std::string font_;
+static std::map<int, TTF_Font *> fonts;
 
 void font::initialise(const std::string &file)
 {
     TTF_Init();
-    font_ = TTF_OpenFont(file.c_str(), 50);
+    font_ = file;
 }
 
-SDL_Surface *font::renderText(const std::string &text)
+void font::loadSize(int size)
 {
-    SDL_Surface *surface = TTF_RenderUTF8_Blended(font_, text.c_str(), {0xff, 0xff, 0xff, 0xff});
-    return surface;
+    if (fonts.find(size) == fonts.end())
+    {
+        fonts[size] = TTF_OpenFont(font_.c_str(), size);
+    }
 }
 
-SDL_Texture *font::renderText(SDL_Renderer *renderer, const std::string &text)
+void font::unloadSize(int size)
 {
-    SDL_Surface *temp = renderText(text);
+    if (fonts.find(size) != fonts.end())
+    {
+        TTF_CloseFont(fonts[size]);
+        fonts.erase(size);
+    }
+}
+
+SDL_Surface *font::renderText(const std::string &text, int size)
+{
+    if (fonts.find(size) != fonts.end())
+    {
+        SDL_Surface *surface = TTF_RenderUTF8_Blended(fonts[size], text.c_str(), {0xff, 0xff, 0xff, 0xff});
+        return surface;
+    }
+    else
+    {
+        TTF_Font *f = TTF_OpenFont(font_.c_str(), size);
+        SDL_Surface *surface = TTF_RenderUTF8_Blended(f, text.c_str(), {0xff, 0xff, 0xff, 0xff});
+        TTF_CloseFont(f);
+        return surface;
+    }
+}
+
+SDL_Texture *font::renderText(SDL_Renderer *renderer, const std::string &text, int size)
+{
+    SDL_Surface *temp = renderText(text, size);
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, temp);
     SDL_FreeSurface(temp);
     return texture;
@@ -27,6 +56,5 @@ SDL_Texture *font::renderText(SDL_Renderer *renderer, const std::string &text)
 
 void font::release()
 {
-    TTF_CloseFont(font_);
     TTF_Quit();
 }

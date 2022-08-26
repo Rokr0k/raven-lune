@@ -34,6 +34,8 @@ namespace rl
             SDL_FRect bannerRect;
             SDL_Texture *stagefile;
             SDL_FRect stagefileRect;
+            SDL_Texture *filename;
+            SDL_FRect filenameRect;
         };
         std::vector<info_t> infos;
         size_t index;

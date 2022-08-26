@@ -46,19 +46,7 @@ void file::initialise()
             task.wait();
         }
         std::stable_sort(file::charts.begin(), file::charts.end(), [](const bms::Chart *a, const bms::Chart *b){
-            if(a->title == b->title)
-            {
-                if(a->artist == b->artist)
-                {
-                    if(a->difficulty == b->difficulty)
-                    {
-                        return a->playLevel < b->playLevel;
-                    }
-                    return a->difficulty < b->difficulty;
-                }
-                return a->artist < b->artist;
-            }
-            return a->title < b->title;
+            return a->filename < b->filename;
         }); });
 }
 

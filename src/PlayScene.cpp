@@ -41,8 +41,11 @@ void PlayScene::initialise(App *app)
 
     timer = SDL_GetTicks() + 5000;
 
+    font::loadSize(20);
+    font::loadSize(40);
+
     speed = 4;
-    speedDisplay = font::renderText(app->renderer, std::to_string(speed / 4) + "." + std::to_string(speed * 10 / 4 % 10) + std::to_string(speed * 100 / 4 % 10));
+    speedDisplay = font::renderText(app->renderer, std::to_string(speed / 4) + "." + std::to_string(speed * 10 / 4 % 10) + std::to_string(speed * 100 / 4 % 10), 20);
     if (chart->type == bms::Chart::Type::Single)
     {
         int w, h;
@@ -71,7 +74,7 @@ void PlayScene::initialise(App *app)
     bgas[2] = 0;
     bgaRect = {(640 - (chart->type == bms::Chart::Type::Single ? 155 : 315) - 256) * 0.5f + (chart->type == bms::Chart::Type::Single ? 155 : 315), (480 - 256) * 0.5f, 256, 256};
 
-    bpmDisplay = font::renderText(app->renderer, std::to_string((int)chart->sectors[sectorIdx].bpm).substr(0, 3));
+    bpmDisplay = font::renderText(app->renderer, std::to_string((int)chart->sectors[sectorIdx].bpm).substr(0, 3), 20);
     if (chart->type == bms::Chart::Type::Single)
     {
         int w, h;
@@ -108,7 +111,7 @@ void PlayScene::initialise(App *app)
     if (automatic)
     {
         int w, h;
-        autoplayDisplay = font::renderText(app->renderer, "autoplay");
+        autoplayDisplay = font::renderText(app->renderer, "autoplay", 20);
         SDL_QueryTexture(autoplayDisplay, NULL, NULL, &w, &h);
         autoplayDisplayRect = {77.5f - (float)w / h * 10, 360, (float)w / h * 20, 20};
     }
@@ -474,7 +477,7 @@ void PlayScene::draw()
                 {
                     keydown(obj.note.player, obj.note.line);
                     std::vector<Obj>::iterator iter = std::find_if(objs.begin(), objs.end(), [&obj](const Obj &a)
-                                                                        { return a.type == bms::Obj::Type::NOTE && a.note.player == obj.note.player && a.note.line == obj.note.line && a.fraction > obj.fraction && !a.executed; });
+                                                                   { return a.type == bms::Obj::Type::NOTE && a.note.player == obj.note.player && a.note.line == obj.note.line && a.fraction > obj.fraction && !a.executed; });
                     if (iter == objs.end() || !iter->note.end)
                     {
                         float a = 0.1f;
@@ -497,7 +500,7 @@ void PlayScene::draw()
                     judge(JudgeType::POOR);
                     obj.executed = true;
                     std::vector<Obj>::iterator iter = std::find_if(objs.begin(), objs.end(), [&obj](const Obj &a)
-                                                                        { return a.type == bms::Obj::Type::NOTE && a.note.player == obj.note.player && a.note.line == obj.note.line && a.fraction > obj.fraction && !a.executed; });
+                                                                   { return a.type == bms::Obj::Type::NOTE && a.note.player == obj.note.player && a.note.line == obj.note.line && a.fraction > obj.fraction && !a.executed; });
                     if (iter != objs.end() && iter->note.end)
                     {
                         iter->executed = true;
@@ -560,15 +563,15 @@ void PlayScene::draw()
         SDL_DestroyTexture(bpmDisplay);
         if (chart->sectors[sectorIdx].bpm > 0)
         {
-            bpmDisplay = font::renderText(app->renderer, std::to_string((int)chart->sectors[sectorIdx].bpm).substr(0, 3));
+            bpmDisplay = font::renderText(app->renderer, std::to_string((int)chart->sectors[sectorIdx].bpm).substr(0, 3), 20);
         }
         else if (sectorIdx > 0)
         {
-            bpmDisplay = font::renderText(app->renderer, std::to_string((int)chart->sectors[sectorIdx - 1].bpm).substr(0, 3));
+            bpmDisplay = font::renderText(app->renderer, std::to_string((int)chart->sectors[sectorIdx - 1].bpm).substr(0, 3), 20);
         }
         else
         {
-            bpmDisplay = font::renderText(app->renderer, "0");
+            bpmDisplay = font::renderText(app->renderer, "0", 20);
         }
         if (chart->type == bms::Chart::Type::Single)
         {
@@ -658,6 +661,8 @@ void PlayScene::release()
     {
         SDL_DestroyTexture(autoplayDisplay);
     }
+    font::unloadSize(20);
+    font::unloadSize(40);
     audio::releaseAudio();
     bga::release();
 }
@@ -774,7 +779,7 @@ void PlayScene::onkeydown(SDL_KeyboardEvent key)
     case SDLK_UP:
         speed = std::min(speed + 1, 40);
         SDL_DestroyTexture(speedDisplay);
-        speedDisplay = font::renderText(app->renderer, std::to_string(speed / 4) + "." + std::to_string(speed * 10 / 4 % 10) + std::to_string(speed * 100 / 4 % 10));
+        speedDisplay = font::renderText(app->renderer, std::to_string(speed / 4) + "." + std::to_string(speed * 10 / 4 % 10) + std::to_string(speed * 100 / 4 % 10), 20);
         if (chart->type == bms::Chart::Type::Single)
         {
             int w, h;
@@ -791,7 +796,7 @@ void PlayScene::onkeydown(SDL_KeyboardEvent key)
     case SDLK_DOWN:
         speed = std::max(speed - 1, 1);
         SDL_DestroyTexture(speedDisplay);
-        speedDisplay = font::renderText(app->renderer, std::to_string(speed / 4) + "." + std::to_string(speed * 10 / 4 % 10) + std::to_string(speed * 100 / 4 % 10));
+        speedDisplay = font::renderText(app->renderer, std::to_string(speed / 4) + "." + std::to_string(speed * 10 / 4 % 10) + std::to_string(speed * 100 / 4 % 10), 20);
         if (chart->type == bms::Chart::Type::Single)
         {
             int w, h;
@@ -924,7 +929,7 @@ void PlayScene::keydown(int player, int line)
 {
     pressed[{player, line}] = true;
     std::vector<Obj>::iterator iter = std::find_if(objs.begin(), objs.end(), [player, line](const Obj &a)
-                                                        { return a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line && !a.note.end && !a.executed; });
+                                                   { return a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line && !a.note.end && !a.executed; });
     float currentTime = ((float)SDL_GetTicks() - (float)timer) * 0.001f;
     if (iter != objs.end())
     {
@@ -957,7 +962,7 @@ void PlayScene::keydown(int player, int line)
         if (j != JudgeType::NONE)
         {
             std::vector<Obj>::iterator next = std::find_if(iter + 1, objs.end(), [player, line](const Obj &a)
-                                                                { return a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line && !a.executed; });
+                                                           { return a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line && !a.executed; });
             if (next != objs.end() && next->note.end)
             {
                 suspendedJudge[{player, line}] = j;
@@ -991,7 +996,7 @@ void PlayScene::keydown(int player, int line)
             {
             none:
                 std::vector<Obj>::reverse_iterator riter = std::find_if(objs.rbegin(), objs.rend(), [player, line](const Obj &a)
-                                                                             { return (a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line || a.type == bms::Obj::Type::INVISIBLE && a.misc.player == player && a.misc.line == line) && a.executed; });
+                                                                        { return (a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line || a.type == bms::Obj::Type::INVISIBLE && a.misc.player == player && a.misc.line == line) && a.executed; });
                 if (riter != objs.rend())
                 {
                     switch (riter->type)
@@ -1013,7 +1018,7 @@ void PlayScene::keyup(int player, int line)
 {
     pressed[{player, line}] = false;
     std::vector<Obj>::iterator iter = std::find_if(objs.begin(), objs.end(), [&player, &line](const Obj &a)
-                                                        { return a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line && !a.executed; });
+                                                   { return a.type == bms::Obj::Type::NOTE && a.note.player == player && a.note.line == line && !a.executed; });
     float currentTime = ((float)SDL_GetTicks() - (float)timer) * 0.001f;
     if (iter != objs.end() && iter->note.end)
     {
@@ -1022,7 +1027,7 @@ void PlayScene::keyup(int player, int line)
         {
             judge(JudgeType::POOR);
             std::vector<Obj>::reverse_iterator start = std::find_if(objs.rbegin(), objs.rend(), [&note](const Obj &a)
-                                                                         { return a.type == bms::Obj::Type::NOTE && a.note.player == note.note.player && a.note.line == note.note.line && a.time < note.time; });
+                                                                    { return a.type == bms::Obj::Type::NOTE && a.note.player == note.note.player && a.note.line == note.note.line && a.time < note.time; });
             if (start != objs.rend())
                 audio::stopAudio(start->note.key);
         }
@@ -1047,41 +1052,41 @@ void PlayScene::judge(JudgeType j)
     case JudgeType::JUST:
         combo++;
         gauge = std::min(gauge + chart->total / noteCnt, 100.0f);
-        judgeDisplay = font::renderText(app->renderer, "GREAT " + std::to_string(combo));
+        judgeDisplay = font::renderText(app->renderer, "GREAT " + std::to_string(combo), 40);
         SDL_SetTextureColorMod(judgeDisplay, 0xcc, 0xcc, 0xcc);
         judgeCount[0]++;
         break;
     case JudgeType::GREAT:
         combo++;
         gauge = std::min(gauge + chart->total / noteCnt, 100.0f);
-        judgeDisplay = font::renderText(app->renderer, "GREAT " + std::to_string(combo));
+        judgeDisplay = font::renderText(app->renderer, "GREAT " + std::to_string(combo), 40);
         SDL_SetTextureColorMod(judgeDisplay, 0xff, 0xd7, 0x00);
         judgeCount[1]++;
         break;
     case JudgeType::GOOD:
         combo++;
         gauge = std::min(gauge + chart->total / noteCnt * 0.5f, 100.0f);
-        judgeDisplay = font::renderText(app->renderer, "GOOD " + std::to_string(combo));
+        judgeDisplay = font::renderText(app->renderer, "GOOD " + std::to_string(combo), 40);
         SDL_SetTextureColorMod(judgeDisplay, 0xad, 0xff, 0x2f);
         judgeCount[2]++;
         break;
     case JudgeType::BAD:
         combo = 0;
         gauge = std::max(gauge - 4, 0.0f);
-        judgeDisplay = font::renderText(app->renderer, "BAD");
+        judgeDisplay = font::renderText(app->renderer, "BAD", 40);
         SDL_SetTextureColorMod(judgeDisplay, 0xee, 0x82, 0xee);
         judgeCount[3]++;
         break;
     case JudgeType::POOR:
         combo = 0;
         gauge = std::max(gauge - 6, 0.0f);
-        judgeDisplay = font::renderText(app->renderer, "POOR");
+        judgeDisplay = font::renderText(app->renderer, "POOR", 40);
         SDL_SetTextureColorMod(judgeDisplay, 0xdc, 0x14, 0x3c);
         judgeCount[4]++;
         break;
     case JudgeType::GPOOR:
         gauge = std::max(gauge - 2, 0.0f);
-        judgeDisplay = font::renderText(app->renderer, "POOR");
+        judgeDisplay = font::renderText(app->renderer, "POOR", 40);
         SDL_SetTextureColorMod(judgeDisplay, 0xdc, 0x14, 0x3c);
         judgeCount[4]++;
         break;

@@ -46,6 +46,7 @@ App::~App()
 int App::loop()
 {
     SDL_Event event;
+    bool fstoggle = false;
     while (true)
     {
         while (SDL_PollEvent(&event))
@@ -55,6 +56,11 @@ int App::loop()
             case SDL_QUIT:
                 return 0;
             case SDL_KEYDOWN:
+                if (event.key.keysym.sym == SDLK_F11)
+                {
+                    fstoggle = !fstoggle;
+                    SDL_SetWindowFullscreen(window, fstoggle ? SDL_WINDOW_FULLSCREEN : 0);
+                }
                 if (scene)
                 {
                     scene->onkeydown(event.key);
