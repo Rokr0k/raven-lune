@@ -10,25 +10,6 @@ using namespace rl;
 std::vector<bms::Chart *> file::charts;
 std::future<void> file::loading;
 
-static void findBMS(const std::string &path, std::vector<std::future<void>> &tasks)
-{
-    for (const std::filesystem::directory_entry &i : std::filesystem::recursive_directory_iterator(path))
-    {
-        if (i.is_regular_file() && std::regex_match(i.path().extension().string(), std::regex(R"(\.bm[sel])")))
-        {
-            tasks.push_back(std::async(
-                std::launch::async, [](std::string file)
-                {
-                bms::Chart *chart = bms::parseBMS(file);
-                if(chart)
-                {
-                    file::charts.push_back(chart);
-                } },
-                i.path().string()));
-        }
-    }
-}
-
 void file::initialise()
 {
     loading = std::async(std::launch::async, []()
@@ -38,7 +19,25 @@ void file::initialise()
         std::vector<std::future<void>> tasks;
         while (std::getline(list, dir))
         {
-            findBMS(dir, tasks);
+            if(std::filesystem::exists(dir))
+            {
+                for (const std::filesystem::directory_entry &i : std::filesystem::recursive_directory_iterator(dir, std::filesystem::directory_options::follow_directory_symlink|std::filesystem::directory_options::skip_permission_denied))
+                {
+                    if (i.is_regular_file() && std::regex_match(i.path().extension().string(), std::regex(R"(\.bm[sel])")))
+                    {
+                        tasks.push_back(std::async(
+                            std::launch::async, [](std::string file)
+                            {
+                                bms::Chart *chart = bms::parseBMS(file);
+                                if(chart)
+                                {
+                                    file::charts.push_back(chart);
+                                }
+                            },
+                            i.path().string()));
+                    }
+                }
+            }
         }
         list.close();
         for(const std::future<void> &task : tasks)
