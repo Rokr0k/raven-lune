@@ -120,7 +120,7 @@ void PlayScene::initialise(App *app)
 void PlayScene::draw()
 {
     float currentTime = ((float)SDL_GetTicks() - (float)timer) * 0.001f;
-    float currentFraction = chart->timeToFraction(currentTime);
+    float currentPos = chart->time2pos(currentTime);
 
     SDL_SetRenderDrawColor(app->renderer, 0x80, 0x80, 0xff, 0x80);
     if (pressed[{1, 6}])
@@ -155,9 +155,6 @@ void PlayScene::draw()
     }
     if (pressed[{1, 8}])
     {
-        for (int i = 0; i < 1296; i++)
-        {
-        }
         SDL_FRect rect = {120, 0, 15, 480};
         SDL_RenderFillRectF(app->renderer, &rect);
     }
@@ -235,20 +232,15 @@ void PlayScene::draw()
         SDL_RenderDrawLineF(app->renderer, 285, 0, 285, 480);
         SDL_RenderDrawLineF(app->renderer, 315, 0, 315, 480);
     }
-
-    float signature = 0;
-    SDL_RenderDrawLineF(app->renderer, 0, 480 * (1 - (signature - currentFraction) * speed * 0.25f), 155, 480 * (1 - (signature - currentFraction) * speed * 0.25f));
-    if (chart->type == bms::Chart::Type::Dual)
-    {
-        SDL_RenderDrawLineF(app->renderer, 160, 480 * (1 - (signature - currentFraction) * speed * 0.25f), 315, 480 * (1 - (signature - currentFraction) * speed * 0.25f));
-    }
+    
     for (int i = 0; i < 1000; i++)
     {
-        signature += chart->signatures[i];
-        SDL_RenderDrawLineF(app->renderer, 0, 480 * (1 - (signature - currentFraction) * speed * 0.25f), 155, 480 * (1 - (signature - currentFraction) * speed * 0.25f));
+        float pos = chart->frac2pos(i);
+        float posDiff = pos - currentPos;
+        SDL_RenderDrawLineF(app->renderer, 0, 480 * (1 - posDiff * speed * 0.25f), 155, 480 * (1 - posDiff * speed * 0.25f));
         if (chart->type == bms::Chart::Type::Dual)
         {
-            SDL_RenderDrawLineF(app->renderer, 160, 480 * (1 - (signature - currentFraction) * speed * 0.25f), 315, 480 * (1 - (signature - currentFraction) * speed * 0.25f));
+            SDL_RenderDrawLineF(app->renderer, 160, 480 * (1 - posDiff * speed * 0.25f), 315, 480 * (1 - posDiff * speed * 0.25f));
         }
     }
 
@@ -263,11 +255,10 @@ void PlayScene::draw()
 
         if (obj.type == bms::Obj::Type::NOTE)
         {
-            float fraction = chart->resolveSignatures(obj.fraction);
-            float fractionDiff = fraction - currentFraction;
+            float posDiff = obj.pos - currentPos;
             SDL_Rect srcRect;
             SDL_FRect dstRect;
-            dstRect.y = 480 * (1 - fractionDiff * speed * 0.25f) - 5;
+            dstRect.y = 480 * (1 - posDiff * speed * 0.25f) - 5;
             dstRect.h = 5;
             switch (obj.note.player)
             {
@@ -365,9 +356,9 @@ void PlayScene::draw()
             if (obj.note.end)
             {
                 const bms::Obj &note = obj;
-                const bms::Obj &unt = *std::find_if(objs.rbegin(), objs.rend(), [&note](const bms::Obj &a)
-                                                    { return a.type == bms::Obj::Type::NOTE && a.note.player == note.note.player && a.note.line == note.note.line && a.fraction < note.fraction; });
-                dstRect.h = (fraction - chart->resolveSignatures(unt.fraction)) * speed * 0.25f * 480;
+                const bms::Obj &unt = *std::find_if(objs.crbegin(), objs.crend(), [&note](const bms::Obj &a)
+                                                    { return a.type == bms::Obj::Type::NOTE && a.note.player == note.note.player && a.note.line == note.note.line && a.pos < note.pos; });
+                dstRect.h = (obj.pos - unt.pos) * speed * 0.25f * 480;
                 dstRect.x += 5;
                 dstRect.w -= 10;
             }
@@ -375,9 +366,9 @@ void PlayScene::draw()
         }
         else if (obj.type == bms::Obj::Type::BOMB)
         {
-            float fractionDiff = chart->resolveSignatures(obj.fraction) - currentFraction;
+            float posDiff = obj.pos - currentPos;
             SDL_FRect dstRect;
-            dstRect.y = 480 * (1 - fractionDiff * speed * 0.25f) - 5;
+            dstRect.y = 480 * (1 - posDiff * speed * 0.25f) - 5;
             dstRect.h = 5;
             SDL_SetRenderDrawColor(app->renderer, 0xff, 0x80, 0x80, 0xff);
             switch (obj.note.player)
@@ -477,7 +468,7 @@ void PlayScene::draw()
                 {
                     keydown(obj.note.player, obj.note.line);
                     std::vector<Obj>::iterator iter = std::find_if(objs.begin(), objs.end(), [&obj](const Obj &a)
-                                                                   { return a.type == bms::Obj::Type::NOTE && a.note.player == obj.note.player && a.note.line == obj.note.line && a.fraction > obj.fraction && !a.executed; });
+                                                                   { return a.type == bms::Obj::Type::NOTE && a.note.player == obj.note.player && a.note.line == obj.note.line && a.pos > obj.pos && !a.executed; });
                     if (iter == objs.end() || !iter->note.end)
                     {
                         float a = 0.1f;
@@ -500,7 +491,7 @@ void PlayScene::draw()
                     judge(JudgeType::POOR);
                     obj.executed = true;
                     std::vector<Obj>::iterator iter = std::find_if(objs.begin(), objs.end(), [&obj](const Obj &a)
-                                                                   { return a.type == bms::Obj::Type::NOTE && a.note.player == obj.note.player && a.note.line == obj.note.line && a.fraction > obj.fraction && !a.executed; });
+                                                                   { return a.type == bms::Obj::Type::NOTE && a.note.player == obj.note.player && a.note.line == obj.note.line && a.pos > obj.pos && !a.executed; });
                     if (iter != objs.end() && iter->note.end)
                     {
                         iter->executed = true;
