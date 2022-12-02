@@ -56,5 +56,11 @@ SDL_Texture *font::renderText(SDL_Renderer *renderer, const std::string &text, i
 
 void font::release()
 {
+    for (std::pair<const int, TTF_Font *> &f : fonts)
+    {
+        TTF_CloseFont(f.second);
+    }
+    fonts.clear();
+
     TTF_Quit();
 }

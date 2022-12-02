@@ -19,9 +19,9 @@ void file::initialise()
         std::vector<std::future<void>> tasks;
         while (std::getline(list, dir))
         {
-            if(std::filesystem::exists(dir))
+            if (std::filesystem::exists(dir))
             {
-                for (const std::filesystem::directory_entry &i : std::filesystem::recursive_directory_iterator(dir, std::filesystem::directory_options::follow_directory_symlink|std::filesystem::directory_options::skip_permission_denied))
+                for (const std::filesystem::directory_entry &i : std::filesystem::recursive_directory_iterator(dir, std::filesystem::directory_options::follow_directory_symlink | std::filesystem::directory_options::skip_permission_denied))
                 {
                     if (i.is_regular_file() && std::regex_match(i.path().extension().string(), std::regex(R"(\.bm[sel])")))
                     {
@@ -29,7 +29,7 @@ void file::initialise()
                             std::launch::async, [](std::string file)
                             {
                                 bms::Chart *chart = bms::parseBMS(file);
-                                if(chart)
+                                if (chart)
                                 {
                                     file::charts.push_back(chart);
                                 }
