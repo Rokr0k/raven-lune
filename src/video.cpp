@@ -49,23 +49,31 @@ void Video::display(void *data, void *id)
     }
 }
 
-Video::Video(const std::string &file)
+Video::Video(const std::string &file) : surface{nullptr}, instance{nullptr}, media{nullptr}, player{nullptr}, start{0}, first{true}, count{0}, spf{-1}
 {
     surface = SDL_CreateRGBSurfaceWithFormat(SDL_SWSURFACE, 256, 256, 16, SDL_PIXELFORMAT_BGR565);
     instance = libvlc_new(0, NULL);
-    for (const std::string &i : file::getAltFiles(file))
+    if (instance)
     {
-        media = libvlc_media_new_path(instance, i.c_str());
+        for (const std::string &i : file::getAltFiles(file))
+        {
+            media = libvlc_media_new_path(instance, i.c_str());
+            if (media)
+            {
+                break;
+            }
+        }
         if (media)
         {
-            break;
+            player = libvlc_media_player_new_from_media(media);
+            if (player)
+            {
+                libvlc_video_set_format(player, "RV16", 256, 256, 512);
+                libvlc_video_set_callbacks(player, lock, unlock, display, this);
+                libvlc_media_player_play(player);
+            }
         }
     }
-    player = libvlc_media_player_new_from_media(media);
-    libvlc_video_set_format(player, "RV16", 256, 256, 512);
-    libvlc_video_set_callbacks(player, lock, unlock, display, this);
-    libvlc_media_player_play(player);
-    first = true;
 }
 
 SDL_Surface *Video::operator()(float time)
@@ -88,10 +96,19 @@ SDL_Surface *Video::operator()(float time)
 
 Video::~Video()
 {
-    libvlc_media_player_stop(player);
-    libvlc_media_player_release(player);
-    libvlc_media_release(media);
-    libvlc_release(instance);
+    if (player)
+    {
+        libvlc_media_player_stop(player);
+        libvlc_media_player_release(player);
+    }
+    if (media)
+    {
+        libvlc_media_release(media);
+    }
+    if (instance)
+    {
+        libvlc_release(instance);
+    }
     if (surface)
     {
         SDL_FreeSurface(surface);
