@@ -14,7 +14,7 @@ BMS Player powered by SDL.
 
 ## Commands
 
-Unix, \*nix:
+### Unix, \*nix
 
 ```sh
 git clone https://github.com/Rokr0k/raven-lune.git
@@ -27,6 +27,10 @@ cmake ..
 make
 ./raven-lune
 ```
+
+### Windows
+
+You can build Raven Lune with MSYS2 or other tools.
 
 # How to Play
 
