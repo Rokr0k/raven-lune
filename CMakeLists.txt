@@ -2,12 +2,13 @@ cmake_minimum_required(VERSION 3.10)
 
 project(raven-lune)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(SDL2 REQUIRED sdl2)
-pkg_check_modules(SDL2_IMAGE REQUIRED SDL2_image)
-pkg_check_modules(SDL2_MIXER REQUIRED SDL2_mixer)
-pkg_check_modules(SDL2_TTF REQUIRED SDL2_ttf)
-pkg_check_modules(LIBVLC REQUIRED libvlc)
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+find_package(SDL2 REQUIRED)
+find_package(SDL2_image REQUIRED)
+find_package(SDL2_mixer REQUIRED)
+find_package(SDL2_ttf REQUIRED)
+find_package(LIBVLC REQUIRED)
 
 add_subdirectory("bmsparser")
 
@@ -18,7 +19,7 @@ add_executable(raven-lune ${CXX_SOURCES} ${CXX_HEADERS})
 
 target_compile_features(raven-lune PRIVATE cxx_std_17)
 
-target_include_directories(raven-lune PRIVATE ${SDL2_INCLUDE_DIRS} ${SDL2_IMAGE_INCLUDE_DIRS} ${SDL2_MIXER_INCLUDE_DIRS} ${SDL2_TTF_INCLUDE_DIRS} ${LIBVLC_INCLUDE_DIRS})
-target_link_libraries(raven-lune PRIVATE bmsparser ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${SDL2_MIXER_LIBRARIES} ${SDL2_TTF_LIBRARIES} ${LIBVLC_LIBRARIES})
+target_include_directories(raven-lune PRIVATE ${LIBVLC_INCLUDE_DIR})
+target_link_libraries(raven-lune PRIVATE bmsparser SDL2::SDL2main SDL2::SDL2 SDL2_image::SDL2_image SDL2_mixer::SDL2_mixer SDL2_ttf::SDL2_ttf ${LIBVLC_LIBRARY})
 
 file(COPY "res/" DESTINATION "${CMAKE_BINARY_DIR}/res")
