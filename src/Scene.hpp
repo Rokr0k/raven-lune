@@ -1,7 +1,6 @@
 #pragma once
 
 #include <SDL.h>
-#include "App.hpp"
 
 namespace rl
 {

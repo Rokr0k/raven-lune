@@ -1,4 +1,5 @@
 #include "ResultScene.hpp"
+#include "App.hpp"
 #include "ListScene.hpp"
 #include "keys.hpp"
 #include "font.hpp"

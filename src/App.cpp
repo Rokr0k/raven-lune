@@ -1,4 +1,5 @@
 #include "App.hpp"
+#include "Scene.hpp"
 #include <SDL_image.h>
 #include <SDL_mixer.h>
 #include "image.hpp"

@@ -1,4 +1,5 @@
 #include "PlayScene.hpp"
+#include "App.hpp"
 #include "ListScene.hpp"
 #include "ResultScene.hpp"
 #include "file.hpp"

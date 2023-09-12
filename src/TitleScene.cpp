@@ -1,4 +1,5 @@
 #include "TitleScene.hpp"
+#include "App.hpp"
 #include "ListScene.hpp"
 #include "font.hpp"
 #include "file.hpp"

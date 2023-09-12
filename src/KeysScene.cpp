@@ -1,7 +1,9 @@
 #include "KeysScene.hpp"
+#include "App.hpp"
 #include "ListScene.hpp"
 #include "keys.hpp"
 #include "font.hpp"
+#include <GL/gl.h>
 
 using namespace rl;
 
