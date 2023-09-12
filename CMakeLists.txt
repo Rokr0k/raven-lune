@@ -9,6 +9,7 @@ find_package(SDL2_image REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 find_package(LIBVLC REQUIRED)
+find_package(OpenGL)
 
 add_subdirectory("bmsparser")
 
@@ -20,6 +21,6 @@ add_executable(raven-lune ${CXX_SOURCES} ${CXX_HEADERS})
 target_compile_features(raven-lune PRIVATE cxx_std_17)
 
 target_include_directories(raven-lune PRIVATE ${LIBVLC_INCLUDE_DIR})
-target_link_libraries(raven-lune PRIVATE bmsparser SDL2::SDL2main SDL2::SDL2 SDL2_image::SDL2_image SDL2_mixer::SDL2_mixer SDL2_ttf::SDL2_ttf ${LIBVLC_LIBRARY})
+target_link_libraries(raven-lune PRIVATE bmsparser SDL2::SDL2main SDL2::SDL2 SDL2_image::SDL2_image SDL2_mixer::SDL2_mixer SDL2_ttf::SDL2_ttf ${LIBVLC_LIBRARY} OpenGL::GL)
 
 file(COPY "res/" DESTINATION "${CMAKE_BINARY_DIR}/res")

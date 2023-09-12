@@ -7,6 +7,7 @@
 #include "file.hpp"
 #include "audio.hpp"
 #include "keys.hpp"
+#include <GL/gl.h>
 
 using namespace rl;
 
@@ -18,10 +19,8 @@ App::App(Scene *initialScene)
     audio::initialise();
     file::initialise();
     keys::load();
-    window = SDL_CreateWindow("Raven Lune", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    SDL_RenderSetLogicalSize(renderer, 640, 480);
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    window = SDL_CreateWindow("Raven Lune", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL);
+    gl = SDL_GL_CreateContext(window);
     scene = initialScene;
     if (scene)
     {
@@ -39,7 +38,7 @@ App::~App()
     font::release();
     audio::release();
     file::release();
-    SDL_DestroyRenderer(renderer);
+    SDL_GL_DeleteContext(gl);
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
@@ -75,13 +74,19 @@ int App::loop()
                 break;
             }
         }
-        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
-        SDL_RenderClear(renderer);
+
+        int w, h;
+        SDL_GetWindowSize(window, &w, &h);
+
+        glViewport(0, 0, w, h);
+
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
         if (scene)
         {
             scene->draw();
         }
-        SDL_RenderPresent(renderer);
+        SDL_GL_SwapWindow(window);
     }
     return 0;
 }
