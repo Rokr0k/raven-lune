@@ -3,17 +3,26 @@
 #include <queue>
 #include <string>
 #include <SDL.h>
-#include <vlc/vlc.h>
+extern "C"
+{
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libswscale/swscale.h>
+}
 
 namespace rl
 {
     class Video
     {
     private:
-        libvlc_instance_t *instance;
-        libvlc_media_t *media;
-        libvlc_media_player_t *player;
-        SDL_Surface *surface;
+        AVFormatContext *formatCtx;
+        int videoStream;
+        AVCodecContext *codecCtx;
+        AVFrame *frame;
+        AVFrame *frameRGB;
+        AVPacket *packet;
+        SwsContext *swsCtx;
+        SDL_mutex *mutex;
         struct Picture
         {
             SDL_Surface *surface;
@@ -24,14 +33,8 @@ namespace rl
             }
         };
         std::queue<Picture> pictQueue;
-        int count;
-        bool first;
-        Uint32 start;
-        float spf;
 
-        static void *lock(void *data, void **p_pixels);
-        static void unlock(void *data, void *id, void *const *p_pixels);
-        static void display(void *data, void *id);
+        static int decode(void *data);
 
     public:
         Video(const std::string &file);

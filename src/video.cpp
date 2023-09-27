@@ -1,83 +1,115 @@
 #include "video.hpp"
 #include "file.hpp"
 #include <fstream>
+#include <algorithm>
+#include <SDL_thread.h>
 
 using namespace rl;
 
-void *Video::lock(void *data, void **p_pixels)
+Video::Video(const std::string &file)
+    : formatCtx{nullptr},
+      videoStream{-1},
+      codecCtx{nullptr},
+      frame{nullptr},
+      frameRGB{nullptr},
+      swsCtx{nullptr},
+      mutex{nullptr}
 {
-    Video *video = (Video *)data;
-    SDL_LockSurface(video->surface);
-    *p_pixels = video->surface->pixels;
-    return NULL;
-}
-
-void Video::unlock(void *data, void *id, void *const *p_pixels)
-{
-    Video *video = (Video *)data;
-    SDL_UnlockSurface(video->surface);
-}
-
-void Video::display(void *data, void *id)
-{
-    Video *video = (Video *)data;
-    if (video->first)
+    for (const std::string &i : file::getAltFiles(file))
     {
-        video->spf = -1;
-        libvlc_media_track_t **tracks = NULL;
-        unsigned int count = libvlc_media_tracks_get(video->media, &tracks);
-        for (unsigned int i = 0; i < count; i++)
+        if (avformat_open_input(&formatCtx, i.c_str(), NULL, NULL) == 0)
         {
-            if (tracks[i]->i_type == libvlc_track_video && tracks[i]->video->i_frame_rate_num && tracks[i]->video->i_frame_rate_den)
+            break;
+        }
+    }
+    if (!formatCtx)
+        return;
+
+    if (avformat_find_stream_info(formatCtx, NULL) < 0)
+        return;
+    for (int i = 0; i < formatCtx->nb_streams; i++)
+    {
+        if (formatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+        {
+            videoStream = i;
+            break;
+        }
+    }
+    if (videoStream < 0)
+        return;
+
+    const AVCodec *codec = avcodec_find_decoder(formatCtx->streams[videoStream]->codecpar->codec_id);
+    if (!codec)
+        return;
+    codecCtx = avcodec_alloc_context3(codec);
+    if (!codecCtx)
+        return;
+    if (avcodec_parameters_to_context(codecCtx, formatCtx->streams[videoStream]->codecpar) < 0)
+        return;
+    if (avcodec_open2(codecCtx, codec, NULL) < 0)
+        return;
+
+    frame = av_frame_alloc();
+    if (!frame)
+        return;
+
+    frameRGB = av_frame_alloc();
+    if (!frameRGB)
+        return;
+
+    packet = av_packet_alloc();
+    if (!packet)
+        return;
+
+    swsCtx = sws_getContext(codecCtx->width, codecCtx->height, codecCtx->pix_fmt, 256, 256, AV_PIX_FMT_RGB24, SWS_BILINEAR, NULL, NULL, NULL);
+    if (!swsCtx)
+        return;
+
+    SDL_Thread *thread = SDL_CreateThread(Video::decode, "RL Video Decode", this);
+    mutex = SDL_CreateMutex();
+
+    SDL_DetachThread(thread);
+}
+
+int Video::decode(void *data)
+{
+    Video *video = (Video *)data;
+
+    while (av_read_frame(video->formatCtx, video->packet) >= 0)
+    {
+        if (video->packet->stream_index == video->videoStream)
+        {
+            avcodec_send_packet(video->codecCtx, video->packet);
+
+            int ret = avcodec_receive_frame(video->codecCtx, video->frame);
+            if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
             {
-                video->spf = (float)tracks[i]->video->i_frame_rate_den / (float)tracks[i]->video->i_frame_rate_num;
                 break;
             }
-        }
-        libvlc_media_tracks_release(tracks, count);
-        video->first = false;
-        video->start = SDL_GetTicks();
-        video->count = 0;
-    }
-    if (video->spf < 0)
-    {
-        video->pictQueue.push({SDL_DuplicateSurface(video->surface), (SDL_GetTicks() - video->start) * 0.001f});
-    }
-    else
-    {
-        video->pictQueue.push({SDL_DuplicateSurface(video->surface), video->count++ * video->spf});
-    }
-}
+            else if (ret < 0)
+            {
+                return -1;
+            }
 
-Video::Video(const std::string &file) : surface{nullptr}, instance{nullptr}, media{nullptr}, player{nullptr}, start{0}, first{true}, count{0}, spf{-1}
-{
-    surface = SDL_CreateRGBSurfaceWithFormat(SDL_SWSURFACE, 256, 256, 16, SDL_PIXELFORMAT_BGR565);
-    instance = libvlc_new(0, NULL);
-    if (instance)
-    {
-        for (const std::string &i : file::getAltFiles(file))
-        {
-            media = libvlc_media_new_path(instance, i.c_str());
-            if (media)
-            {
-                break;
-            }
-        }
-        if (media)
-        {
-            player = libvlc_media_player_new_from_media(media);
-            if (player)
-            {
-                libvlc_video_set_format(player, "RV16", 256, 256, 512);
-                libvlc_video_set_callbacks(player, lock, unlock, display, this);
-                libvlc_media_player_play(player);
-            }
+            sws_scale(video->swsCtx, video->frame->data, video->frame->linesize, 0, video->codecCtx->height, video->frameRGB->data, video->frameRGB->linesize);
+
+            SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, 256, 256, 24, SDL_PIXELFORMAT_RGB24);
+            SDL_LockSurface(surface);
+            memcpy(surface->pixels, video->frameRGB->data, 256 * 256 * 3);
+            SDL_UnlockSurface(surface);
+
+            SDL_LockMutex(video->mutex);
+            video->pictQueue.push(Video::Picture{surface, video->frameRGB->pts * (float)av_q2d(video->codecCtx->time_base)});
+            SDL_UnlockMutex(video->mutex);
         }
     }
+
+    return 0;
 }
 
 SDL_Surface *Video::operator()(float time)
 {
+    SDL_LockMutex(mutex);
     while (!pictQueue.empty())
     {
         Picture &picture = pictQueue.front();
@@ -88,30 +120,39 @@ SDL_Surface *Video::operator()(float time)
         }
         else
         {
+            SDL_UnlockMutex(mutex);
             return picture.surface;
         }
     }
+    SDL_UnlockMutex(mutex);
     return NULL;
 }
 
 Video::~Video()
 {
-    if (player)
+    if (formatCtx)
     {
-        libvlc_media_player_stop(player);
-        libvlc_media_player_release(player);
+        avformat_close_input(&formatCtx);
     }
-    if (media)
+    if (codecCtx)
     {
-        libvlc_media_release(media);
+        avcodec_free_context(&codecCtx);
     }
-    if (instance)
+    if (frame)
     {
-        libvlc_release(instance);
+        av_frame_free(&frame);
     }
-    if (surface)
+    if (frameRGB)
     {
-        SDL_FreeSurface(surface);
+        av_frame_free(&frameRGB);
+    }
+    if (packet)
+    {
+        av_packet_free(&packet);
+    }
+    if (swsCtx)
+    {
+        sws_freeContext(swsCtx);
     }
     while (!pictQueue.empty())
     {
