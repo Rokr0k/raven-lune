@@ -1,3 +1,7 @@
+# Created by https://www.toptal.com/developers/gitignore/api/cmake,vcpkg
+# Edit at https://www.toptal.com/developers/gitignore?templates=cmake,vcpkg
+
+### CMake ###
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
@@ -10,5 +14,22 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 
-build/
+### CMake Patch ###
+# External projects
+*-prefix/
+
+### vcpkg ###
+# Vcpkg
+
+vcpkg-manifest-install.log
+
+## Manifest Mode
+vcpkg_installed/
+
+# End of https://www.toptal.com/developers/gitignore/api/cmake,vcpkg
+
+.cache/
+.vs/
+
 out/
+build/

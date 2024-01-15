@@ -1,8 +1,7 @@
-#include "App.hpp"
-#include "TitleScene.hpp"
+#include <SDL_main.h>
 
-int main(int argc, char **argv)
-{
-    rl::App app(new rl::TitleScene());
-    return app.loop();
+int main(int argc, char **argv) {
+  //
+
+  return 0;
 }

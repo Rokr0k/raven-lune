@@ -1,24 +1,29 @@
 cmake_minimum_required(VERSION 3.10)
 
+set(CMAKE_TOOLCHAIN_FILE
+    "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+    CACHE STRING "Vcpkg toolchain file")
+
 project(raven-lune)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(SDL2 REQUIRED sdl2)
-pkg_check_modules(SDL2_IMAGE REQUIRED SDL2_image)
-pkg_check_modules(SDL2_MIXER REQUIRED SDL2_mixer)
-pkg_check_modules(SDL2_TTF REQUIRED SDL2_ttf)
-pkg_check_modules(LIBVLC REQUIRED libvlc)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_subdirectory("bmsparser")
+find_package(SDL2 CONFIG REQUIRED)
+find_package(Stb REQUIRED)
 
-set(CXX_SOURCES "src/file.cpp" "src/font.cpp" "src/audio.cpp" "src/image.cpp" "src/video.cpp" "src/bga.cpp" "src/keys.cpp" "src/App.cpp" "src/TitleScene.cpp" "src/ListScene.cpp" "src/KeysScene.cpp" "src/PlayScene.cpp" "src/ResultScene.cpp" "src/main.cpp")
-set(CXX_HEADERS "src/file.hpp" "src/font.hpp" "src/audio.hpp" "src/image.hpp" "src/video.hpp" "src/bga.hpp" "src/keys.hpp" "src/App.hpp" "src/Scene.hpp" "src/TitleScene.hpp" "src/ListScene.hpp" "src/KeysScene.hpp" "src/PlayScene.hpp" "src/ResultScene.hpp")
+add_subdirectory(libs/bmsparser)
 
-add_executable(raven-lune ${CXX_SOURCES} ${CXX_HEADERS})
+add_executable(raven-lune "src/stb.cpp" "src/main.cpp")
 
 target_compile_features(raven-lune PRIVATE cxx_std_17)
 
-target_include_directories(raven-lune PRIVATE ${SDL2_INCLUDE_DIRS} ${SDL2_IMAGE_INCLUDE_DIRS} ${SDL2_MIXER_INCLUDE_DIRS} ${SDL2_TTF_INCLUDE_DIRS} ${LIBVLC_INCLUDE_DIRS})
-target_link_libraries(raven-lune PRIVATE bmsparser ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${SDL2_MIXER_LIBRARIES} ${SDL2_TTF_LIBRARIES} ${LIBVLC_LIBRARIES})
+target_include_directories(raven-lune PRIVATE ${Stb_INCLUDE_DIR})
+
+target_link_libraries(raven-lune PRIVATE bmsparser SDL2::SDL2 SDL2::SDL2main)
 
 file(COPY "res/" DESTINATION "${CMAKE_BINARY_DIR}/res")
+add_custom_target(
+  raven-res ALL
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/res
+          $<TARGET_FILE_DIR:raven-lune>/res
+  DEPENDS raven-lune)
