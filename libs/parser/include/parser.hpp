@@ -1,5 +1,4 @@
-#ifndef __BMSPARSER_H__
-#define __BMSPARSER_H__
+#pragma once
 
 #include <string>
 #include <vector>
@@ -245,5 +244,3 @@ public:
  */
 Chart *parseBMS(const std::string &file);
 } // namespace bms
-
-#endif

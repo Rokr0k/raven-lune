@@ -6,24 +6,15 @@ set(CMAKE_TOOLCHAIN_FILE
 
 project(raven-lune)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
+find_package(Iconv REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(Stb REQUIRED)
+find_package(Freetype REQUIRED)
+find_package(FFMPEG REQUIRED)
 
-add_subdirectory(libs/bmsparser)
-
-add_executable(raven-lune "src/stb.cpp" "src/main.cpp")
-
-target_compile_features(raven-lune PRIVATE cxx_std_17)
-
-target_include_directories(raven-lune PRIVATE ${Stb_INCLUDE_DIR})
-
-target_link_libraries(raven-lune PRIVATE bmsparser SDL2::SDL2 SDL2::SDL2main)
-
-file(COPY "res/" DESTINATION "${CMAKE_BINARY_DIR}/res")
-add_custom_target(
-  raven-res ALL
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/res
-          $<TARGET_FILE_DIR:raven-lune>/res
-  DEPENDS raven-lune)
+add_subdirectory(libs/parser)
+add_subdirectory(game)

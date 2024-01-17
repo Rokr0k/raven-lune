@@ -1,12 +1,11 @@
 #include <algorithm>
-#include <bmsparser.hpp>
 #include <fstream>
 #include <map>
+#include <parser.hpp>
 #include <sstream>
 #include <stack>
 
-using namespace bms;
-
+namespace bms {
 static bool file_check(const std::string &file);
 
 static Obj create_bgm(float fraction, int key);
@@ -70,7 +69,7 @@ Chart::~Chart() {
   delete[] this->signatures;
 }
 
-Chart *bms::parseBMS(const std::string &file) {
+Chart *parseBMS(const std::string &file) {
   Chart *chart = new Chart;
 
   chart->filename = file;
@@ -494,3 +493,4 @@ static Obj create_bomb(float fraction, int damage, int player, int line) {
   obj.misc.key = damage;
   return obj;
 }
+} // namespace bms

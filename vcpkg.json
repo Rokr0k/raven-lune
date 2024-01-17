@@ -1,6 +1,14 @@
 {
 	"dependencies": [
+		"libiconv",
 		"sdl2",
-		"stb"
+		"stb",
+		"freetype",
+		{
+			"name": "ffmpeg",
+			"features": [
+				"all-gpl"
+			]
+		}
 	]
 }
