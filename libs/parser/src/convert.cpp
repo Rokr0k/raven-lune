@@ -3,11 +3,11 @@
 
 namespace bms {
 std::string sjis_to_utf8(std::string &input) {
-  size_t sjis_len = input.size();
+  size_t sjis_len = input.size() + 1;
   size_t utf8_len = sjis_len * 2;
 
-  char *sjis_str = new char[sjis_len];
-  char *utf8_str = new char[utf8_len];
+  char *sjis_str = new char[sjis_len]{};
+  char *utf8_str = new char[utf8_len]{};
   char *sjis_ptr = sjis_str;
   char *utf8_ptr = utf8_str;
 

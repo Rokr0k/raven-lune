@@ -19,7 +19,7 @@ public:
   void Quit();
 
   template <typename _S, typename... Args> void ChangeScene(Args... args) {
-    m_Scene =
+    m_NextScene =
         std::unique_ptr<Scene>{dynamic_cast<Scene *>(new _S{this, args...})};
   }
 
@@ -38,5 +38,6 @@ private:
   SDL_AudioDeviceID m_AudioDevice;
 
   std::unique_ptr<Scene> m_Scene;
+  std::unique_ptr<Scene> m_NextScene;
 };
 } // namespace rl

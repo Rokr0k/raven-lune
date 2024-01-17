@@ -3,11 +3,10 @@
 #include "scene.hpp"
 #include <SDL.h>
 
-
 namespace rl {
 App::App()
     : m_Window{nullptr}, m_Renderer{nullptr}, m_AudioDevice{0},
-      m_Scene{nullptr} {
+      m_Scene{nullptr}, m_NextScene{nullptr} {
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
   char *basePath = SDL_GetBasePath();
@@ -17,6 +16,8 @@ App::App()
   char *prefPath = SDL_GetPrefPath("Rokr0k", "RavenLune");
   m_PrefPath.assign(prefPath);
   SDL_free(prefPath);
+
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
 
   m_Window = SDL_CreateWindow("Raven Lune", SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED, 640, 480, 0);
@@ -44,6 +45,7 @@ App::App()
 
 App::~App() {
   m_Scene.reset();
+  m_NextScene.reset();
 
   SDL_DestroyRenderer(m_Renderer);
   SDL_DestroyWindow(m_Window);
@@ -66,6 +68,9 @@ void App::Run() {
     }
 
     m_Scene->Iterate();
+
+    if (m_NextScene != nullptr)
+      m_Scene = std::move(m_NextScene);
   }
 quit:;
 }

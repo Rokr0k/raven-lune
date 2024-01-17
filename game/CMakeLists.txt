@@ -6,7 +6,8 @@ add_executable(
   "src/app.cpp"
   "src/scene.cpp"
   "src/audio.cpp"
-  "src/font.cpp")
+  "src/font.cpp"
+  "src/title.cpp")
 
 target_include_directories(rl PRIVATE ${Stb_INCLUDE_DIR} ${FFMPEG_INCLUDE_DIRS})
 
