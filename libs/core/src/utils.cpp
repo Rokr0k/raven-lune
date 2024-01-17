@@ -1,6 +1,6 @@
-#include <rl/utils.hpp>
 #include <filesystem>
 #include <iconv.h>
+#include <rl/utils.hpp>
 
 namespace rl::utils {
 std::vector<std::string> FindFile(const std::string &path) {

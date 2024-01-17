@@ -1,7 +1,7 @@
+#include <SDL.h>
 #include <rl/app.hpp>
 #include <rl/font.hpp>
 #include <rl/scene.hpp>
-#include <SDL.h>
 
 namespace rl {
 App::App()

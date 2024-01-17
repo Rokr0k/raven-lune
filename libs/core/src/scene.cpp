@@ -1,5 +1,5 @@
-#include <rl/scene.hpp>
 #include <algorithm>
+#include <rl/scene.hpp>
 
 namespace rl {
 Scene::Scene(App *app) : m_App{app} {}
@@ -7,10 +7,12 @@ Scene::Scene(App *app) : m_App{app} {}
 Scene::~Scene() {}
 
 void Scene::Iterate() {
-  SDL_SetRenderDrawColor(GetApp()->GetRenderer(), 0x00, 0x00, 0x00, 0x00);
-  SDL_RenderClear(GetApp()->GetRenderer());
+  SDL_Renderer *renderer = GetApp()->GetRenderer();
 
-  SDL_RenderPresent(GetApp()->GetRenderer());
+  SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
+  SDL_RenderClear(renderer);
+
+  SDL_RenderPresent(renderer);
 }
 
 void Scene::Event(const SDL_Event &event) {}
