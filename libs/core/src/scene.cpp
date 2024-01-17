@@ -1,4 +1,4 @@
-#include "scene.hpp"
+#include <rl/scene.hpp>
 #include <algorithm>
 
 namespace rl {

@@ -1,5 +1,5 @@
-#include "app.hpp"
-#include "title.hpp"
+#include <rl/app.hpp>
+#include "scenes/title.hpp"
 #include <SDL_main.h>
 
 int main(int argc, char **argv) {

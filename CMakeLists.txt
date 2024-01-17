@@ -17,4 +17,5 @@ find_package(Freetype REQUIRED)
 find_package(FFMPEG REQUIRED)
 
 add_subdirectory(libs/parser)
+add_subdirectory(libs/core)
 add_subdirectory(game)

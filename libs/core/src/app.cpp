@@ -1,6 +1,6 @@
-#include "app.hpp"
-#include "font.hpp"
-#include "scene.hpp"
+#include <rl/app.hpp>
+#include <rl/font.hpp>
+#include <rl/scene.hpp>
 #include <SDL.h>
 
 namespace rl {

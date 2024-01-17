@@ -1,4 +1,4 @@
-#include "audio.hpp"
+#include <rl/audio.hpp>
 
 extern "C" {
 #include <libavcodec/avcodec.h>

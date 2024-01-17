@@ -1,7 +1,7 @@
 #pragma once
 
-#include "font.hpp"
-#include "scene.hpp"
+#include <rl/font.hpp>
+#include <rl/scene.hpp>
 
 namespace rl {
 class TitleScene final : public Scene {

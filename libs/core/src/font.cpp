@@ -1,5 +1,5 @@
-#include "font.hpp"
-#include "utils.hpp"
+#include <rl/font.hpp>
+#include <rl/utils.hpp>
 
 namespace rl {
 Font::Font(const std::string &filename) : m_Face{nullptr} {
