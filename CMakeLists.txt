@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 find_package(Iconv REQUIRED)
+find_package(ctre CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(Stb REQUIRED)
 find_package(Freetype REQUIRED)

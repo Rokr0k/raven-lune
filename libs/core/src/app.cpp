@@ -27,7 +27,7 @@ App::App()
   SDL_AudioSpec audioSpec;
   audioSpec.freq = 48000;
   audioSpec.channels = 2;
-  audioSpec.samples = 128;
+  audioSpec.samples = 64;
   audioSpec.format = AUDIO_F32;
   audioSpec.callback = [](void *userdata, Uint8 *stream, int length) {
     App *app = reinterpret_cast<App *>(userdata);

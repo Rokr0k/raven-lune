@@ -1,6 +1,7 @@
 {
 	"dependencies": [
 		"libiconv",
+		"ctre",
 		"sdl2",
 		"stb",
 		"freetype",

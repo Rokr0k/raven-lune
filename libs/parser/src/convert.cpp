@@ -1,9 +1,9 @@
+#include <bms/convert.hpp>
 #include <iconv.h>
-#include <parser/convert.hpp>
 
-namespace bms {
-std::string sjis_to_utf8(std::string &input) {
-  size_t sjis_len = input.size() + 1;
+namespace rl::bms {
+std::string ShiftJISToUTF8(std::string_view input) {
+  size_t sjis_len = input.length() + 1;
   size_t utf8_len = sjis_len * 2;
 
   char *sjis_str = new char[sjis_len]{};
@@ -24,4 +24,4 @@ std::string sjis_to_utf8(std::string &input) {
 
   return output;
 }
-} // namespace bms
+} // namespace rl::bms

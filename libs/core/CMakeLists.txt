@@ -10,7 +10,8 @@ add_library(
   "src/stb.cpp")
 
 target_include_directories(core PUBLIC "include/")
-target_link_libraries(core PUBLIC SDL2::SDL2)
+target_link_libraries(
+  core PUBLIC $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
 
 target_include_directories(core PRIVATE ${Stb_INCLUDE_DIR}
                                         ${FFMPEG_INCLUDE_DIRS})

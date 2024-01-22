@@ -1,5 +1,5 @@
+#include <SDL_stdinc.h>
 #include <filesystem>
-#include <iconv.h>
 #include <rl/utils.hpp>
 
 namespace rl::utils {
@@ -19,24 +19,12 @@ std::vector<std::string> FindFile(const std::string &path) {
 }
 
 std::u32string ConvertStringToU32(const std::string &utf8) {
-  size_t utf8_len = utf8.size() + 2;
-  size_t utf32_len = utf8_len * 4;
+  char *utf32_buf =
+      SDL_iconv_string("UTF-32LE", "UTF-8", utf8.c_str(), utf8.size());
 
-  char *utf8_str = new char[utf8_len]{};
-  char *utf32_str = new char[utf32_len]{};
-  char *utf8_ptr = utf8_str;
-  char *utf32_ptr = utf32_str;
+  std::u32string utf32 = reinterpret_cast<char32_t *>(utf32_buf);
 
-  std::copy(utf8.begin(), utf8.end(), utf8_str);
-
-  iconv_t ic = iconv_open("UTF-32LE", "UTF-8");
-  iconv(ic, &utf8_ptr, &utf8_len, &utf32_ptr, &utf32_len);
-  iconv_close(ic);
-
-  std::u32string utf32 = reinterpret_cast<char32_t *>(utf32_str);
-
-  delete[] utf8_str;
-  delete[] utf32_str;
+  SDL_free(utf32_buf);
 
   return utf32;
 }
