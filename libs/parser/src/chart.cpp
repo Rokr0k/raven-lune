@@ -152,7 +152,143 @@ Chart::Chart(const Header &header)
           new BPM{beat, bpm->GetTimeFromBeat(beat + stops[obj.key]),
                   bpm->GetBPM(), false}});
       break;
+    case 37: // 11
+    case 38: // 12
+    case 39: // 13
+    case 40: // 14
+    case 41: // 15
+    case 42: // 16
+    case 43: // 17
+    case 44: // 18
+    case 45: // 19
+    case 73: // 21
+    case 74: // 22
+    case 75: // 23
+    case 76: // 24
+    case 77: // 25
+    case 78: // 26
+    case 79: // 27
+    case 80: // 28
+    case 81: // 29
+      if (!lnobjs.contains(obj.key))
+        m_Objs.push_back(std::unique_ptr<Object>{
+            new Note{beat, time, obj.key, static_cast<Player>(obj.channel / 36),
+                     obj.channel % 36}});
+      else {
+        auto it =
+            std::find_if(m_Objs.rbegin(), m_Objs.rend(),
+                         [&obj](const std::unique_ptr<Object> &o) {
+                           const Note *note = dynamic_cast<Note *>(o.get());
+                           if (note == nullptr)
+                             return false;
+                           return note->GetPlayer() ==
+                                      static_cast<Player>(obj.channel / 36) &&
+                                  note->GetLine() == obj.channel % 36;
+                         });
+        if (it != m_Objs.rend() &&
+            dynamic_cast<Note *>(it->get())->GetEnd() == nullptr) {
+          const Note *note = dynamic_cast<Note *>(it->get());
+          std::unique_ptr<Object> newNote{
+              new Note{note->GetBeat(), note->GetTime(), note->GetKey(),
+                       note->GetPlayer(), note->GetLine(), beat, time}};
+          *it = std::move(newNote);
+        }
+      }
+      break;
+    case 109: // 31
+    case 110: // 32
+    case 111: // 33
+    case 112: // 34
+    case 113: // 35
+    case 114: // 36
+    case 115: // 37
+    case 116: // 38
+    case 117: // 39
+    case 145: // 41
+    case 146: // 42
+    case 147: // 43
+    case 148: // 44
+    case 149: // 45
+    case 150: // 46
+    case 151: // 47
+    case 152: // 48
+    case 153: // 49
+      m_Objs.push_back(std::unique_ptr<Object>{new Invisible{
+          beat, time, obj.key, static_cast<Player>(obj.channel / 36 - 2),
+          obj.channel % 36}});
+      break;
+    case 181: // 51
+    case 182: // 52
+    case 183: // 53
+    case 184: // 54
+    case 185: // 55
+    case 186: // 56
+    case 187: // 57
+    case 188: // 58
+    case 189: // 59
+    case 217: // 61
+    case 218: // 62
+    case 219: // 63
+    case 220: // 64
+    case 221: // 65
+    case 222: // 66
+    case 223: // 67
+    case 224: // 68
+    case 225: // 69
+    {
+      auto it =
+          std::find_if(m_Objs.rbegin(), m_Objs.rend(),
+                       [&obj](const std::unique_ptr<Object> &o) {
+                         const Note *note = dynamic_cast<Note *>(o.get());
+                         if (note == nullptr)
+                           return false;
+                         return note->GetPlayer() ==
+                                    static_cast<Player>(obj.channel / 36 - 4) &&
+                                note->GetLine() == obj.channel % 36;
+                       });
+      if (it != m_Objs.rend() &&
+          dynamic_cast<Note *>(it->get())->GetEnd() == nullptr) {
+        const Note *note = dynamic_cast<Note *>(it->get());
+        std::unique_ptr<Object> newNote{
+            new Note{note->GetBeat(), note->GetTime(), note->GetKey(),
+                     note->GetPlayer(), note->GetLine(), beat, time}};
+        *it = std::move(newNote);
+      } else {
+        m_Objs.push_back(std::unique_ptr<Object>{new Note{
+            beat, time, obj.key, static_cast<Player>(obj.channel / 36 - 4),
+            obj.channel % 36}});
+      }
+      break;
+    }
+    case 469: // D1
+    case 470: // D2
+    case 471: // D3
+    case 472: // D4
+    case 473: // D5
+    case 474: // D6
+    case 475: // D7
+    case 476: // D8
+    case 477: // D9
+    case 505: // E1
+    case 506: // E2
+    case 507: // E3
+    case 508: // E4
+    case 509: // E5
+    case 510: // E6
+    case 511: // E7
+    case 512: // E8
+    case 513: // E9
+      m_Objs.push_back(std::unique_ptr<Object>{new Bomb{
+          beat, time, obj.key, static_cast<Player>(obj.channel / 36 - 12),
+          obj.channel % 36}});
+      break;
     }
   }
+
+  std::stable_sort(m_Objs.begin(), m_Objs.end(),
+                   [](const std::unique_ptr<Object> &lhs,
+                      const std::unique_ptr<Object> &rhs) {
+                     return lhs->GetBeat() < rhs->GetBeat();
+                   });
 }
 } // namespace rl::bms

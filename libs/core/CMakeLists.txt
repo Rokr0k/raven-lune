@@ -16,5 +16,5 @@ target_link_libraries(
 target_include_directories(core PRIVATE ${Stb_INCLUDE_DIR}
                                         ${FFMPEG_INCLUDE_DIRS})
 target_link_directories(core PRIVATE ${FFMPEG_LIBRARY_DIRS})
-target_link_libraries(core PRIVATE Freetype::Freetype Iconv::Iconv
+target_link_libraries(core PRIVATE Freetype::Freetype
                                    ${FFMPEG_LIBRARIES})

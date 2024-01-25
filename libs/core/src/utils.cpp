@@ -20,7 +20,7 @@ std::vector<std::string> FindFile(const std::string &path) {
 
 std::u32string ConvertStringToU32(const std::string &utf8) {
   char *utf32_buf =
-      SDL_iconv_string("UTF-32LE", "UTF-8", utf8.c_str(), utf8.size());
+      SDL_iconv_string("UTF-32LE", "UTF-8", utf8.c_str(), utf8.size() + 1);
 
   std::u32string utf32 = reinterpret_cast<char32_t *>(utf32_buf);
 
