@@ -1,4 +1,5 @@
 #include "title.hpp"
+#include "list.hpp"
 #include <SDL.h>
 
 namespace rl {
@@ -48,10 +49,10 @@ void TitleScene::Iterate() {
 
 void TitleScene::Event(const SDL_Event &event) {
   if (event.type == SDL_KEYDOWN) {
-    if (event.key.keysym.sym == SDLK_ESCAPE) {
+    if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
       GetApp()->Quit();
-    } else if (event.key.keysym.sym == SDLK_SPACE) {
-      //
+    } else if (event.key.keysym.scancode == SDL_SCANCODE_SPACE) {
+      GetApp()->ChangeScene<ListScene>();
     }
   }
 }

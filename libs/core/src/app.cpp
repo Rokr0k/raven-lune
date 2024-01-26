@@ -13,7 +13,7 @@ App::App()
   m_BasePath.assign(basePath);
   SDL_free(basePath);
 
-  char *prefPath = SDL_GetPrefPath("Rokr0k", "RavenLune");
+  char *prefPath = SDL_GetPrefPath("Rokr0kGames", "RavenLune");
   m_PrefPath.assign(prefPath);
   SDL_free(prefPath);
 

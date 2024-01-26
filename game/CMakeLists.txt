@@ -1,4 +1,4 @@
-add_executable(rl "src/main.cpp" "src/scenes/title.cpp")
+add_executable(rl "src/main.cpp" "src/scenes/title.cpp" "src/scenes/list.cpp")
 
 target_link_libraries(rl PRIVATE parser core
                                  $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>)
